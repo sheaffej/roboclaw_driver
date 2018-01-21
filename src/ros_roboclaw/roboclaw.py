@@ -174,6 +174,7 @@ class Roboclaw:
 		val = self._readlong()
 		if val[0]:  # True (1) if read was successful
 			if val[1] & 0x80000000:  # If most significant bit is 1 
+				# Return the two's complement negative value
 				return (val[0], val[1] - 0x100000000)
 			return (val[0], val[1])
 		return (0,0)
