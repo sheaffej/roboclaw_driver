@@ -2,6 +2,7 @@
 
 from __future__ import print_function
 import threading
+import traceback
 
 import rospy
 # from geometry_msgs.msg import Twist
@@ -31,7 +32,7 @@ class RoboclawNode:
         """
         self._node_name = node_name
         self._rbc_ctl = None  # Set by the connect() method below
-        self._loop_rate = 30  # Default of 30 sec
+        # self._loop_rate = 30  # Default of 30 sec
 
         # Lock to coordiate reads & writes to the serial port
         self._serial_lock = threading.Lock()
@@ -53,6 +54,10 @@ class RoboclawNode:
             Stats,
             queue_size=1
         )
+
+    @property
+    def roboclaw_control(self):
+        return self._rbc_ctl
 
     def connect(self, dev_name, baud_rate, address, test_mode=False):
         """Connects the node to the Roboclaw controller, or the test stub
@@ -76,24 +81,27 @@ class RoboclawNode:
             roboclaw = RoboclawStub(dev_name, baud_rate)
         self._rbc_ctl = RoboclawControl(roboclaw, address)
 
-    def run(self, loop_rate=30):
+    def run(self, loop_rate=30, deadman_secs=1):
         """Runs the main loop of the node
         Parameters:
             loop_rate: Seconds between main loop iterations (default 30 secs)
             :type loop_rate: int
 
+            deadman_secs: Seconds that the Roboclaw will continue the last command before
+            stopping if another command is not received.
+            :type deadman_secs: int
+
         Returns: None
         """
         rospy.loginfo("Running node")
-        self._loop_rate = loop_rate
-        rospy.Rate(self._loop_rate)
+        looprate = rospy.Rate(loop_rate)
 
         try:
             rospy.loginfo("Starting main loop")
 
             while not rospy.is_shutdown():
                 with self._serial_lock:
-                    if (rospy.get_rostime() - self._last_cmd_time).to_sec() > 1:
+                    if (rospy.get_rostime() - self._last_cmd_time).to_sec() > deadman_secs:
                         rospy.loginfo("Did not receive a command for over 1 sec: Stopping motors")
                         self._rbc_ctl.stop()
 
@@ -103,10 +111,10 @@ class RoboclawNode:
                         rospy.logwarn(error)
                     self._publish_stats(stats)
 
-                self._loop_rate.sleep()
+                looprate.sleep()
 
         except rospy.ROSInterruptException:
-            rospy.loginfo("ROSInterruptException received in main loop")
+            rospy.logwarn("ROSInterruptException received in main loop")
 
     def _publish_stats(self, stats):
         """Publish stats to the /<node_name>/stats topic
@@ -160,15 +168,21 @@ class RoboclawNode:
 if __name__ == "__main__":
 
     # Read the input parameters
-    node_name = rospy.get_param("~name", DEFAULT_NODE_NAME)
-    dev_name = rospy.get_param("~dev", DEFAULT_DEV_NAME)
-    baud_rate = int(rospy.get_param("~baud", DEFAULT_BAUD_RATE))
-    loop_rate = int(rospy.get_param("~looprate", DEFAULT_LOOP_RATE))
-    address = int(rospy.get_param("~address", DEFAULT_ADDRESS))
-    test_mode = bool(rospy.get_param("~test", False))
+    # node_name = rospy.get_param("~name", DEFAULT_NODE_NAME)
+    # dev_name = rospy.get_param("~dev", DEFAULT_DEV_NAME)
+    # baud_rate = int(rospy.get_param("~baud", DEFAULT_BAUD_RATE))
+    # loop_rate = int(rospy.get_param("~looprate", DEFAULT_LOOP_RATE))
+    # address = int(rospy.get_param("~address", DEFAULT_ADDRESS))
+    # test_mode = bool(rospy.get_param("~test", False))
+    node_name = "roboclaw1"
+    dev_name = "/dev/ttyACM0"
+    baud_rate = 115200
+    loop_rate = 1
+    address = 0x80
+    test_mode = True
 
     # Setup the ROS node
-    rospy.init_node(node_name)
+    rospy.init_node(node_name, log_level=rospy.DEBUG)
 
     rospy.logdebug("node_name: {}".format(node_name))
     rospy.logdebug("dev_name: {}".format(dev_name))
@@ -183,12 +197,13 @@ if __name__ == "__main__":
     try:
         # Initialize the Roboclaw controller
         node.connect(dev_name, baud_rate, address, test_mode)
-        node.run(loop_rate)
+        node.run(loop_rate=loop_rate, deadman_secs=1)
 
     except Exception as e:
-        rospy.logfatal("Unhandled exeption...exiting")
-        rospy.logdebug(e)
-        rospy.signal_shutdown("Unhandled exception: {}".format(e.message))
+        rospy.logfatal("Unhandled exeption...printing stack trace then shutting down node")
+        rospy.logfatal(traceback.format_exc())
+
+        # rospy.signal_shutdown("Unhandled exception: {}".format(e.message))
 
     # Shutdown and cleanup
     if node:

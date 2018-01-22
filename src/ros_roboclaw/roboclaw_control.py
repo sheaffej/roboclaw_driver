@@ -44,14 +44,19 @@ class RoboclawControl:
         if isinstance(roboclaw, Roboclaw):
             self._initialize()
 
+    @property
+    def roboclaw(self):
+        return self._roboclaw
+
     def _initialize(self):
         # Connect and initialize the Roboclaw controller over serial
         try:
             self._roboclaw.Open()
-        except Exception as e:
-            raise IOError(
-                "Error connecting Roboclaw port: {}".format(e.message)
-            )
+        except Exception:
+            # Pass the exception up so it can be logged by the ROS logging facilities
+            # Also, if this fais we really can't continue
+            raise
+
         self.forward(0.0)
         self.left(0.0)
         self._roboclaw.ResetEncoders(self._address)
@@ -128,29 +133,32 @@ class RoboclawControl:
 
         # Read encoder value
         try:
-            success, stats.m1_enc_val, crc1 = self._roboclaw.ReadEncM1(self._address)
+            success, stats.m1_enc_val = self._roboclaw.ReadEncM1(self._address)
         except ValueError as e:
             stats.error_messages.append("Encoder1 value ValueError: {}".format(e.message))
+            raise
 
         try:
-            success, stats.m2_enc_val, crc2 = self._roboclaw.ReadEncM2(self._address)
+            success, stats.m2_enc_val = self._roboclaw.ReadEncM2(self._address)
         except ValueError:
             stats.error_messages.append("Encoder2 value ValueError: {}".format(e.message))
 
         # Read encoder speed
         try:
-            success, stats.m1_enc_qpps, crc1 = self._roboclaw.ReadM1Speed(self._address)
+            success, stats.m1_enc_qpps = self._roboclaw.ReadM1Speed(self._address)
         except ValueError as e:
             stats.error_messages.append("Encoder1 speed ValueError: {}".format(e.message))
 
         try:
-            success, stats.m2_enc_qpps, crc2 = self._roboclaw.ReadM2Speed(self._address)
+            success, stats.m2_enc_qpps = self._roboclaw.ReadM2Speed(self._address)
         except ValueError:
             stats.error_messages.append("Encoder2 speed ValueError: {}".format(e.message))
 
         # Read motor current
         try:
-            stats.m1_current, stats.m2_current, crc1 = self._roboclaw.ReadCurrents(self._address)
+            (success,
+             stats.m1_current,
+             stats.m2_current) = self._roboclaw.ReadCurrents(self._address)
         except ValueError as e:
             stats.error_messages.append("Motor currents ValueError: {}".format(e.message))
 
@@ -162,7 +170,7 @@ class RoboclawControl:
 
         # Read main battery voltage
         try:
-            success, main_battery_v = self._roboclaw.ReadMainBatteryVoltage(self._address)
+            success, stats.main_battery_v = self._roboclaw.ReadMainBatteryVoltage(self._address)
         except Exception as e:
             stats.error_messages.append("Main battery voltage ValueError: {}".format(e.message))
 

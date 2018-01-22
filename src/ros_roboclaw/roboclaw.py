@@ -255,7 +255,7 @@ class Roboclaw:
 		return (0,0)
 
 	def _read4_1(self,address,cmd):
-		# Return tuple (success, 4-byte, 1-byte)
+		# Return tuple (success, 4-byte)
 		trys = self._trystimeout
 		while 1:
 			self._port.flushInput()
@@ -1038,9 +1038,5 @@ class Roboclaw:
 		return self._read1(address,self.Cmd.GETPWMMODE)
 
 	def Open(self):
-		try:
-			self._port = serial.Serial(port=self.comport, baudrate=self.rate, timeout=1, interCharTimeout=self.timeout)
-		except:
-			return 0
-		return 1
+		self._port = serial.Serial(port=self.comport, baudrate=self.rate, timeout=1, interCharTimeout=self.timeout)
 
