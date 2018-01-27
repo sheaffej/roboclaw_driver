@@ -1,10 +1,6 @@
 #!/usr/bin/env python
 from __future__ import print_function
-import sys
 import unittest
-
-# import rospy
-import rosunit
 
 from ros_roboclaw.roboclaw_stub import RoboclawStub
 from ros_roboclaw.roboclaw_control import RoboclawControl
@@ -31,33 +27,32 @@ class TestRoboclawStub(unittest.TestCase):
         # Drive forward
         self.rbc_ctl.SpeedAccelDistanceM1M2(0, 1000, 2000, 1000, 2000, True)
 
-        self.roboclaw._simulate()  # 0.5 seconds
+        self.roboclaw._simulate(sim_secs=0.5)
         self.check_stats(1000, 1000, 500, 500)
 
-        self.roboclaw._simulate()  # 0.5 seconds
+        self.roboclaw._simulate(sim_secs=0.5)
         self.check_stats(1000, 1000, 1000, 1000)
 
         # Stop after reaching distance
-        self.roboclaw._simulate()  # 0.5 seconds
-        self.roboclaw._simulate()  # 0.5 seconds
-        self.roboclaw._simulate()  # 0.5 seconds -> need to run simulate once more
+        self.roboclaw._simulate(sim_secs=1.0)
+        self.roboclaw._simulate()  # need to run simulate once more
         self.check_stats(0, 0, 2000, 2000)
 
         # Drive backward
         self.rbc_ctl.SpeedAccelDistanceM1M2(0, -2000, 4000, -2000, 4000, True)
 
-        self.roboclaw._simulate()  # 0.5 seconds
+        self.roboclaw._simulate(sim_secs=0.5)
         self.check_stats(-2000, -2000, 1000, 1000)
 
-        self.roboclaw._simulate()  # 0.5 seconds
+        self.roboclaw._simulate(sim_secs=0.5)
         self.check_stats(-2000, -2000, 0, 0)
 
-        self.roboclaw._simulate()  # 0.5 seconds
+        self.roboclaw._simulate(sim_secs=0.5)
         self.check_stats(-2000, -2000, -1000, -1000)
 
         # Stop after reaching distance
-        self.roboclaw._simulate()  # 0.5 seconds
-        self.roboclaw._simulate()  # 0.5 seconds -> need to run simulate once more
+        self.roboclaw._simulate(sim_secs=0.5)
+        self.roboclaw._simulate()  # need to run simulate once more
         self.check_stats(0, 0, -2000, -2000)
 
     def test_normal_left_right(self):
@@ -67,27 +62,23 @@ class TestRoboclawStub(unittest.TestCase):
         # Turn left
         self.rbc_ctl.SpeedAccelDistanceM1M2(0, 1000, 2000, -1000, 2000, True)
 
-        self.roboclaw._simulate()  # 0.5 seconds
+        self.roboclaw._simulate(sim_secs=0.5)
         self.check_stats(1000, -1000, 500, -500)
 
         # Check that stopped
-        self.roboclaw._simulate()  # 0.5 seconds
-        self.roboclaw._simulate()  # 0.5 seconds
-        self.roboclaw._simulate()  # 0.5 seconds
-        self.roboclaw._simulate()  # 0.5 seconds -> need to run simulate once more
+        self.roboclaw._simulate(sim_secs=1.5)
+        self.roboclaw._simulate()  # need to run simulate once more
         self.check_stats(0, 0, 2000, -2000)
 
         # Turn right
         self.rbc_ctl.SpeedAccelDistanceM1M2(0, -2000, 4000, 2000, 4000, True)
 
-        self.roboclaw._simulate()  # 0.5 seconds
+        self.roboclaw._simulate(sim_secs=0.5)
         self.check_stats(-2000, 2000, 1000, -1000)
 
         # Check that stopped
-        self.roboclaw._simulate()  # 0.5 seconds
-        self.roboclaw._simulate()  # 0.5 seconds
-        self.roboclaw._simulate()  # 0.5 seconds
-        self.roboclaw._simulate()  # 0.5 seconds -> need to run simulate once more
+        self.roboclaw._simulate(sim_secs=1.5)  # 0.5 seconds
+        self.roboclaw._simulate()  # need to run simulate once more
         self.check_stats(0, 0, -2000, 2000)
 
     def test_normal_stop(self):
@@ -96,12 +87,12 @@ class TestRoboclawStub(unittest.TestCase):
 
         # Start moving forward
         self.rbc_ctl.SpeedAccelDistanceM1M2(0, 1000, 5000, 1000, 5000, True)
-        self.roboclaw._simulate()  # 0.5 seconds
+        self.roboclaw._simulate(sim_secs=0.5)
         self.check_stats(1000, 1000, 500, 500)
 
         # Issue stop command
         self.rbc_ctl.stop()
-        self.roboclaw._simulate()  # 0.5 seconds
+        self.roboclaw._simulate()
         # Stop command was received before simulate() so the loop of simulate should not
         # add any distance
         self.check_stats(0, 0, 500, 500)
@@ -178,4 +169,5 @@ class TestRoboclawStub(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    rosunit.unitrun(PKG, NAME, TestRoboclawStub, sys.argv)
+    import rosunit
+    rosunit.unitrun(PKG, NAME, TestRoboclawStub)

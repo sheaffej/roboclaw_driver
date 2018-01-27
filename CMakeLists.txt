@@ -196,4 +196,4 @@ include_directories(
 # endif()
 
 ## Add folders to be run by python nosetests
-catkin_add_nosetests(tests/test_roboclaw_stub.py)
+catkin_add_nosetests(tests/test_roboclaw_stub_unit.py)

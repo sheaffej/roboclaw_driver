@@ -1,7 +1,7 @@
 import threading
 import time
 
-SIM_LOOP_SECS = 0.5
+SIM_LOOP_SECS = 0.1
 MAX_MOTOR_CURRENT = 2.1  # Amps
 
 
@@ -58,7 +58,7 @@ class RoboclawStub:
             self._simulate()
             time.sleep(SIM_LOOP_SECS)
 
-    def _simulate(self):
+    def _simulate(self, sim_secs=SIM_LOOP_SECS):
         """Run by _sim_loop to calculate the next state values.
         This logic is a separate from the _sim_loop so it can easily be called by a unittest.
         """
@@ -70,14 +70,14 @@ class RoboclawStub:
                 self._m2_target_qpps = 0
 
             self._m1_enc_qpps = self._m1_target_qpps
-            newdist = self._m1_target_qpps * SIM_LOOP_SECS
+            newdist = self._m1_target_qpps * sim_secs
             self._m1_enc_val += newdist
             self._m1_actual_dist += abs(newdist)
             pct = abs(float(self._m1_enc_qpps) / float(self._max_qpps))
             self._m1_current = MAX_MOTOR_CURRENT * pct
 
             self._m2_enc_qpps = self._m2_target_qpps
-            newdist = self._m2_target_qpps * SIM_LOOP_SECS
+            newdist = self._m2_target_qpps * sim_secs
             self._m2_enc_val += newdist
             self._m2_actual_dist += abs(newdist)
             pct = abs(float(self._m2_enc_qpps) / float(self._max_qpps))
