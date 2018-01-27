@@ -4,7 +4,7 @@ import sys
 import unittest
 
 # import rospy
-import rostest
+import rosunit
 
 from ros_roboclaw.roboclaw_stub import RoboclawStub
 from ros_roboclaw.roboclaw_control import RoboclawControl
@@ -178,4 +178,4 @@ class TestRoboclawStub(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    rostest.rosrun(PKG, NAME, TestRoboclawStub, sys.argv)
+    rosunit.unitrun(PKG, NAME, TestRoboclawStub, sys.argv)
