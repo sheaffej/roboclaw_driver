@@ -74,10 +74,8 @@ class RoboclawControl:
     def __init__(self, roboclaw, address=0x80):
         """
         Parameters:
-            roboclaw: The Roboclaw object from the Python driver library
-                :type roboclaw: Roboclaw
-            address: The serial addresss of the Roboclaw controller
-                :type address: int
+            :param Roboclaw roboclaw: The Roboclaw object from the Python driver library
+            :param int address: The serial addresss of the Roboclaw controller
         """
         self._roboclaw = roboclaw
         self._address = address
@@ -107,7 +105,7 @@ class RoboclawControl:
         """Stop Roboclaw.
 
         Returns: True if the command succeeded, False if failed
-            :rtype: bool
+        :rtype: bool
         """
         with self._serial_lock:
             return self.SpeedAccelDistanceM1M2(
@@ -123,127 +121,11 @@ class RoboclawControl:
                 reset_buffer
             )
 
-    # def forward_backward(self, speed_pct):
-    #     """Drive Roboclaw forward using a % of full speed forward or backward.
-    #     Range is -1.0 (full reverse) to 1.0 (full forward). 0.0 is stopped
-
-    #     Parameters:
-    #     speed_pct: % speed in the forward or backward direction (range: -1.0 to 1.0)
-    #         :type speed_pct: float
-
-    #     Returns: The computed command value sent to the Roboclaw controller if the command
-    #     was successful. Throws IOError if the command was unsucessful
-    #         :rtype: int
-    #     """
-
-    #     # val: 0 is full reverse, 64 is stopped, 127 is full forward
-    #     # Examples:
-    #     #   (1.0 * 64) + 64 = 128.0
-    #     #   (-1.0 * 64) + 64 = 0.0
-    #     #   (0.5 * 64) + 64 = 96
-    #     #   (-0.5 * 64) + 64 = 32
-
-    #     val = int(speed_pct * 64) + 64
-    #     if val >= 128:
-    #         val = 127
-    #     elif val < 0:
-    #         val = 0
-
-    #     success = self._roboclaw.ForwardBackwardMixed(self._address, val)
-    #     if not success:
-    #         raise IOError("Roboclaw.ForwardBackwardMixed() retured failure code")
-    #     return val
-
-    # def left_right(self, rot_speed_pct):
-    #     """Turn Roboclaw right using % of full speed turn left or right.
-    #     Range is -1.0 (full left) to 1.0 (full right). 0.0 is stop turn.
-
-    #     Parameters:
-    #     rot_speed_pct: % speed rotation to the right or left (range -1.0 to 1.0)
-    #         :type rot_speed_pct: float
-
-    #     Returns: The computed command value sent to the Roboclaw controller if the command
-    #     was successful. Throws IOError if the command was unsucessful
-    #         :rtype: int
-    #     """
-
-    #     # val: 0 is full left, 64 is stop turn, 127 is full right
-    #     # Examples:
-    #     #   (1.0 * 64) + 64 = 128.0
-    #     #   (-1.0 * 64) + 64 = 0.0
-    #     #   (0.5 * 64) + 64 = 96
-    #     #   (-0.5 * 64) + 64 = 32
-
-    #     val = int(rot_speed_pct * 64) + 64
-    #     if val >= 128:
-    #         val = 127
-    #     elif val < 0:
-    #         val = 0
-
-    #     success = self._roboclaw.LeftRightMixed(self._address, val)
-    #     if not success:
-    #         raise IOError("Roboclaw.LeftRightMixed() retured failure code")
-    #     return val
-
-    # def forward(self, speed_pct):
-    #     """Drive Roboclaw forward using a % of full speed.
-
-    #     Parameters:
-    #     speed_pct: % speed in the forward direction (i.e. 0.5 for 50%)
-    #         :type speed_pct: float
-
-    #     Returns: True if the command succeeded, False if failed
-    #         :rtype: bool
-    #     """
-    #     val = int(127 * speed_pct)  # 0 is full stop & 127 is full speed
-    #     return self._roboclaw.ForwardMixed(self._address, val)
-
-    # def reverse(self, speed_pct):
-    #     """Drive Roboclaw in revers using a % of full speed.
-
-    #     Parameters:
-    #     speed_pct: % speed in the reverse direction (i.e. 0.5 for 50%)
-    #         :type speed_pct: float
-
-    #     Returns: True if the command succeeded, False if failed
-    #         :rtype: bool
-    #     """
-    #     val = int(127 * speed_pct)  # 0 is full stop & 127 is full speed
-    #     return self._roboclaw.BackwardMixed(self._address, val)
-
-    # def right(self, rot_speed_pct):
-    #     """Turn Roboclaw right using % of full speed turn.
-
-    #     Parameters:
-    #     rot_speed_pct: % speed rotation to the right (i.e. 0.5 for 50%)
-    #         :type rot_speed_pct: float
-
-    #     Returns: True if the command succeeded, False if failed
-    #         :rtype: bool
-    #     """
-    #     val = int(127 * rot_speed_pct)  # 0 is full stop & 127 is full speed
-    #     return self._roboclaw.TurnRightMixed(self._address, val)
-
-    # def left(self, rot_speed_pct):
-    #     """Turn Roboclaw left using a % of full speed turn.
-
-    #     Parameters:
-    #     rot_speed_pct: % speed rotation to the left (i.e. 0.5 for 50%)
-    #         :type rot_speed_pct: float
-
-    #     Returns: True if the command succeeded, False if failed
-    #         :rtype: bool
-    #     """
-    #     val = int(127 * rot_speed_pct)  # 0 is full stop & 127 is full speed
-    #     return self._roboclaw.TurnLeftMixed(self._address, val)
-
     def read_stats(self):
         """Read and return the monitorinng values of the Roboclaw
 
-        Returns:
-            RoboclawStats object containing the current values of the stats:
-                :rtype: RoboclawStats
-
+        Returns: RoboclawStats object containing the current values of the stats:
+        :rtype: RoboclawStats
         """
         stats = RoboclawStats()
 
@@ -295,10 +177,8 @@ class RoboclawControl:
     def read_diag(self):
         """Read and return the diagnostic values of the Roboclaw
 
-        Returns:
-            RoboclawDiagnostics object containing the current values of the diagnostics:
-                :rtype: RoboclawDiagnostics
-
+        Returns: RoboclawDiagnostics object containing the current values of the diagnostics
+        :rtype: RoboclawDiagnostics
         """
         diag = RoboclawDiagnostics()
 

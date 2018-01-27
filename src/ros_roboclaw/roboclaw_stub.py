@@ -17,12 +17,13 @@ class RoboclawStub:
         # Testing stub state
         self._m1_enc_val = 0
         self._m1_enc_qpps = 0
-        self._m1_current = 0.0  # Amps/100
 
         self._m2_enc_val = 0
         self._m2_enc_qpps = 0
-        self._m2_current = 0.0  # Amps/100
 
+        # Diagnostic state
+        self._m1_current = 0.0  # Amps/100
+        self._m2_current = 0.0  # Amps/100
         self._temp1 = 30.0 * 10  # Celsius
         self._temp2 = 0.0  # Celsius
         self._main_bat_voltage = 7.4 * 10  # Volts
@@ -47,7 +48,6 @@ class RoboclawStub:
         self._m1_actual_dist = 0
         self._m2_actual_dist = 0
 
-        print("Starting simulation thread")
         self._thread = threading.Thread(target=self._sim_loop)
         self._state_lock = threading.RLock()
 
