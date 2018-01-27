@@ -1,3 +1,10 @@
+import threading
+import time
+
+SIM_LOOP_SECS = 0.5
+MAX_MOTOR_CURRENT = 2.1  # Amps
+
+
 class RoboclawStub:
 
     def __init__(self, comport, rate, timeout=0.01, retries=3):
@@ -16,8 +23,11 @@ class RoboclawStub:
         self._m2_enc_qpps = 0
         self._m2_current = 0.0  # Amps/100
 
-        self._temp = 30.0  # Celsius
-        self._main_bat_voltage = 7.4  # Volts
+        self._temp1 = 30.0 * 10  # Celsius
+        self._temp2 = 0.0  # Celsius
+        self._main_bat_voltage = 7.4 * 10  # Volts
+        self._logic_bat_voltage = 5.0 * 10  # Volts
+        self._error_bitmap = 0x0000
 
         # These mimic the return values of the roboclaw.py library's read & write functions
         self._read_success = 1  # Read success: 1 = success, 0 = failure
@@ -25,116 +35,115 @@ class RoboclawStub:
 
         self._max_qpps = 3500
 
+        # Speed Command variables
+        self._m1_target_qpps = 0
+        self._m2_target_qpps = 0
+        self._m1_target_dist = 0
+        self._m2_target_dist = 0
+        self._target_accel = 0
+
+        # Tracks how far into the commanded distance has been traveled
+        # So we can stop once we've traveled the full commanded distance
+        self._m1_actual_dist = 0
+        self._m2_actual_dist = 0
+
+        print("Starting simulation thread")
+        self._thread = threading.Thread(target=self._sim_loop)
+        self._state_lock = threading.RLock()
+
+    def _sim_loop(self):
+        """The loop run by simulation thread
+        """
+        while self._running:
+            self._simulate()
+            time.sleep(SIM_LOOP_SECS)
+
+    def _simulate(self):
+        """Run by _sim_loop to calculate the next state values.
+        This logic is a separate from the _sim_loop so it can easily be called by a unittest.
+        """
+        with self._state_lock:
+            if self._m1_actual_dist >= self._m1_target_dist:
+                self._m1_target_qpps = 0
+
+            if self._m2_actual_dist >= self._m2_target_dist:
+                self._m2_target_qpps = 0
+
+            self._m1_enc_qpps = self._m1_target_qpps
+            newdist = self._m1_target_qpps * SIM_LOOP_SECS
+            self._m1_enc_val += newdist
+            self._m1_actual_dist += abs(newdist)
+            pct = abs(float(self._m1_enc_qpps) / float(self._max_qpps))
+            self._m1_current = MAX_MOTOR_CURRENT * pct
+
+            self._m2_enc_qpps = self._m2_target_qpps
+            newdist = self._m2_target_qpps * SIM_LOOP_SECS
+            self._m2_enc_val += newdist
+            self._m2_actual_dist += abs(newdist)
+            pct = abs(float(self._m2_enc_qpps) / float(self._max_qpps))
+            self._m2_current = MAX_MOTOR_CURRENT * pct
+
+    def start_simulator(self):
+        """Starts the simulation thread
+        """
+        self._running = True
+        self._thread.start()
+
+    def shutdown(self):
+        """Stops the simulation thread
+        """
+        self._running = False
+
     #
     # Methods that match the roboclaw.py libary's functions
     #
-    def ForwardMixed(self, address, val):
-        self._m1_enc_qpps = int(self._max_qpps * self._byte_to_pctdecimal(val))
-        self._m2_enc_qpps = int(self._max_qpps * self._byte_to_pctdecimal(val))
-
-        self._m1_enc_val += self._m1_enc_qpps * 1
-        self._m2_enc_val += self._m2_enc_qpps * 1
-        return self._write_success
-
-    def BackwardMixed(self, address, val):
-        return self._write_success
-
-    def TurnRightMixed(self, address, val):
-        return self._write_success
-
-    def TurnLeftMixed(self, address, val):
+    def SpeedAccelDistanceM1M2(self, address, accel, speed1, distance1, speed2, distance2, buffer):
+        with self._state_lock:
+            self._target_accel = accel
+            self._m1_target_qpps = speed1
+            self._m2_target_qpps = speed2
+            self._m1_target_dist = distance1
+            self._m2_target_dist = distance2
+            self._m1_actual_dist = 0
+            self._m2_actual_dist = 0
         return self._write_success
 
     def ReadEncM1(self, address):
-        return (self._read_success, self._m1_enc_val)
+        with self._state_lock:
+            return (self._read_success, self._m1_enc_val)
 
     def ReadEncM2(self, address):
-        return (self._read_success, self._m2_enc_val)
+        with self._state_lock:
+            return (self._read_success, self._m2_enc_val)
 
-    def ReadM1Speed(self, address):
-        return (self._read_success, self._m1_enc_qpps)
+    def ReadSpeedM1(self, address):
+        with self._state_lock:
+            return (self._read_success, self._m1_enc_qpps)
 
-    def ReadM2Speed(self, address):
-        return (self._read_success, self._m2_enc_qpps)
+    def ReadSpeedM2(self, address):
+        with self._state_lock:
+            return (self._read_success, self._m2_enc_qpps)
 
     def ReadCurrents(self, address):
-        return (self._read_success, self._m1_current, self._m2_current)
+        with self._state_lock:
+            return (self._read_success, self._m1_current, self._m2_current)
 
     def ReadTemp(self, address):
-        return (self._read_success, self._temp)
+        with self._state_lock:
+            return (self._read_success, self._temp1)
+
+    def ReadTemp2(self, address):
+        with self._state_lock:
+            return (self._read_success, self._temp2)
 
     def ReadMainBatteryVoltage(self, address):
-        return (self._read_success, self._main_bat_voltage)
+        with self._state_lock:
+            return (self._read_success, self._main_bat_voltage)
 
-    #
-    # Testing methods to set stub's behavior
-    #
-    def SetEncoderValues(self, m1_val, m2_val):
-        """Sets the testing Motor1 and Motor2 encoder count values.
+    def ReadLogicBatteryVoltage(self, address):
+        with self._state_lock:
+            return (self._read_success, self._logic_bat_voltage)
 
-        Parameters: unsigned 32-bit int values for M1 and M2
-        :type m1_val: int
-        :type m2_val: int
-        """
-        self._m1_enc_val = m1_val
-        self._m2_enc_val = m2_val
-
-    def SetEncoderSpeeds(self, m1_qpps, m2_qpps):
-        """Sets the testing Motor1 and Motor2 encoder QPPS values.
-
-        Parameters: Signed 32-bit int values for M1 and M2
-        :type m1_qpps: int
-        :type m2_qpps: int
-        """
-        self._m1_enc_qpps = m1_qpps
-        self._m2_enc_qpps = m2_qpps
-
-    def SetMotorCurrents(self, m1_amps, m2_amps):
-        """Sets the testing Motor1 and Motor2 current values in Amps.
-
-        Parameters: unsigned flat values for M1 and M2
-        :type m1_amps: float
-        :type m2_amps: float
-        """
-        self._m1_current = m1_amps/100.0
-        self._m2_current = m2_amps/100.0
-
-    def SetTemp(self, temp):
-        """Sets the testing Roboclaw controller temp1.
-
-        Parameter: Unsigned float value in Celsius
-        :type temp: float
-        """
-        self._temp = temp
-
-    def SetMainBatteryVoltage(self, volts):
-        """Sets the testing main battery voltage as seen by Roboclaw controller.
-
-        Parameter: Signed float value in Volts
-        :type temp: float
-        """
-        self._main_bat_voltage = volts
-
-    def SetReadSuccess(self, success):
-        """Sets the stub's read function's return value.
-        True (1) = success, False(0) = failure
-
-        Parameter: success
-        :type success: bool
-        """
-        if success:
-            self._read_success = 1
-        else:
-            self._read_success = 0
-
-    def SetWriteSuccess(self, success):
-        """Sets the stub's write function's return value.
-        True = success, False = failure
-
-        Parameter: success
-        :type success: bool
-        """
-        self._write_success = success
-
-    def _byte_to_pctdecimal(self, byteval):
-        return byteval / 127.0
+    def ReadError(self, address):
+        with self._state_lock:
+            return (self._read_success, self._error_bitmap)

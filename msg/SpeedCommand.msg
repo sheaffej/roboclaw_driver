@@ -1,5 +1,11 @@
-# Percent of full speed forward. Reverse is a negative value (-100.0 to 100.0)
-float32 forward_pct
+# Motor speed in QPPS
+int32 m1_speed
+int32 m2_speed
 
-# Percent of turn speed clockwise. Left is a negative value (-100.0 to 100.0)
-float32 turn_pct
+# Motor distance in encoder tick count
+uint32 m1_dist
+uint32 m2_dist
+
+# Motor acceleration in QPPS per second
+uint32 accel
+

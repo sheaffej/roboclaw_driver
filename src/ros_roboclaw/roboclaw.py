@@ -255,7 +255,10 @@ class Roboclaw:
 		return (0,0)
 
 	def _read4_1(self,address,cmd):
-		# Return tuple (success, 4-byte)
+		""" Returns:
+		Success tuple: (1, 4-byte value, 1-byte CRC)
+		Failure tuple: (0,0)
+		"""
 		trys = self._trystimeout
 		while 1:
 			self._port.flushInput()
