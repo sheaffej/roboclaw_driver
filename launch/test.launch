@@ -4,8 +4,9 @@
         <param name="dev_name" type="str" value="/dev/ttyACM0"/>
         <param name="baud" type="int" value="115200"/>
         <param name="address" type="int" value="128"/>
-        <param name="loop_secs" type="int" value="1"/>
+        <param name="loop_hz" type="int" value="10"/>
         <param name="deadman_secs" type="int" value="30"/>
-        <param name="test_mode" type="bool" value="true"/>
+        <param name="test_mode" type="bool" value="false"/>
     </node>
+    <test test-name="roboclaw_node_nodetest" pkg="roboclaw_driver" type="test_roboclaw_node.py"/>
 </launch>

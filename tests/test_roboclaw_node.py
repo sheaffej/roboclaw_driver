@@ -35,12 +35,12 @@ class TestRoboclawNode(unittest.TestCase):
         m1_qpps, m2_qpps = 1000, 1000
         m1_dist, m2_dist = 2000, 2000
         qpps_delta = 0
-        dist_delta = 500
+        dist_delta = 1000
 
         cmd = self._create_speed_command(0, m1_qpps, m2_qpps, m1_dist, m2_dist)
         self.pub_speed_cmd.publish(cmd)
 
-        rospy.sleep(4)
+        rospy.sleep(6)
         self._check_stats(
             0, 0, qpps_delta,
             start_m1_dist + m1_dist, start_m2_dist + m2_dist, dist_delta
@@ -55,12 +55,12 @@ class TestRoboclawNode(unittest.TestCase):
         m1_qpps, m2_qpps = -2000, -2000
         m1_dist, m2_dist = 4000, 4000
         qpps_delta = 0
-        dist_delta = 500
+        dist_delta = 2000
 
         cmd = self._create_speed_command(0, m1_qpps, m2_qpps, m1_dist, m2_dist)
         self.pub_speed_cmd.publish(cmd)
 
-        rospy.sleep(4)
+        rospy.sleep(6)
         self._check_stats(
             0, 0, qpps_delta,
             start_m1_dist - m1_dist, start_m2_dist - m2_dist, dist_delta
@@ -75,12 +75,12 @@ class TestRoboclawNode(unittest.TestCase):
         m1_qpps, m2_qpps = 1000, -1000
         m1_dist, m2_dist = 2000, 2000
         qpps_delta = 0
-        dist_delta = 500
+        dist_delta = 2000
 
         cmd = self._create_speed_command(0, m1_qpps, m2_qpps, m1_dist, m2_dist)
         self.pub_speed_cmd.publish(cmd)
 
-        rospy.sleep(4)
+        rospy.sleep(6)
         self._check_stats(
             0, 0, qpps_delta,
             start_m1_dist + m1_dist, start_m2_dist - m2_dist, dist_delta
@@ -95,12 +95,12 @@ class TestRoboclawNode(unittest.TestCase):
         m1_qpps, m2_qpps = -1000, 1000
         m1_dist, m2_dist = 2000, 2000
         qpps_delta = 0
-        dist_delta = 500
+        dist_delta = 2000
 
         cmd = self._create_speed_command(0, m1_qpps, m2_qpps, m1_dist, m2_dist)
         self.pub_speed_cmd.publish(cmd)
 
-        rospy.sleep(4)
+        rospy.sleep(6)
         self._check_stats(
             0, 0, qpps_delta,
             start_m1_dist - m1_dist, start_m2_dist + m2_dist, dist_delta

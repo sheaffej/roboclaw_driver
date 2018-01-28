@@ -15,7 +15,7 @@ from ros_roboclaw.roboclaw_stub import RoboclawStub
 DEFAULT_DEV_NAME = "/dev/ttyACM0"
 DEFAULT_BAUD_RATE = 115200
 DEFAULT_NODE_NAME = "roboclaw1"
-DEFAULT_LOOP_RATE = 30
+DEFAULT_LOOP_HZ = 30
 DEFAULT_ADDRESS = 0x80
 DEFAULT_DEADMAN_SEC = 30
 
@@ -74,15 +74,15 @@ class RoboclawNode:
             roboclaw.start_simulator()
         self._rbc_ctl = RoboclawControl(roboclaw, address)
 
-    def run(self, loop_rate=30, deadman_secs=1):
+    def run(self, loop_hz=10, deadman_secs=1):
         """Runs the main loop of the node
         Parameters:
-            :param int loop_rate: Seconds between main loop iterations (default 30 secs)
+            :param int loop_hz: Loops per sec of main loop (default 10 hertz)
             :param int deadman_secs: Seconds that the Roboclaw will continue the last command
                 before stopping if another command is not received
         """
         rospy.loginfo("Running node")
-        looprate = rospy.Rate(loop_rate)
+        looprate = rospy.Rate(loop_hz)
 
         try:
             rospy.loginfo("Starting main loop")
@@ -194,7 +194,7 @@ if __name__ == "__main__":
     dev_name = rospy.get_param("~dev_name", DEFAULT_DEV_NAME)
     baud_rate = int(rospy.get_param("~baud", DEFAULT_BAUD_RATE))
     address = int(rospy.get_param("~address", DEFAULT_ADDRESS))
-    loop_rate = int(rospy.get_param("~loop_secs", DEFAULT_LOOP_RATE))
+    loop_hz = int(rospy.get_param("~loop_hz", DEFAULT_LOOP_HZ))
     deadman_secs = int(rospy.get_param("~deadman_secs", DEFAULT_DEADMAN_SEC))
     test_mode = bool(rospy.get_param("~test_mode", False))
 
@@ -202,7 +202,7 @@ if __name__ == "__main__":
     rospy.logdebug("dev_name: {}".format(dev_name))
     rospy.logdebug("baud: {}".format(baud_rate))
     rospy.logdebug("address: {}".format(address))
-    rospy.logdebug("loop_secs: {}".format(loop_rate))
+    rospy.logdebug("loop_hz: {}".format(loop_hz))
     rospy.logdebug("deadman_secs: {}".format(deadman_secs))
     rospy.logdebug("test_mode: {}".format(test_mode))
 
@@ -212,7 +212,7 @@ if __name__ == "__main__":
     try:
         # Initialize the Roboclaw controller
         node.connect(dev_name, baud_rate, address, test_mode)
-        node.run(loop_rate=loop_rate, deadman_secs=DEFAULT_DEADMAN_SEC)
+        node.run(loop_hz=loop_hz, deadman_secs=DEFAULT_DEADMAN_SEC)
 
     except Exception as e:
         rospy.logfatal("Unhandled exeption...printing stack trace then shutting down node")
