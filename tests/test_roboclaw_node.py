@@ -33,17 +33,20 @@ class TestRoboclawNode(unittest.TestCase):
             start_m2_dist = self.stats.m2_enc_val
 
         m1_qpps, m2_qpps = 1000, 1000
-        m1_dist, m2_dist = 2000, 2000
+        max_secs = 2
+        # m1_dist, m2_dist = 2000, 2000
         qpps_delta = 0
         dist_delta = 1000
 
-        cmd = self._create_speed_command(0, m1_qpps, m2_qpps, m1_dist, m2_dist)
+        cmd = self._create_speed_command(m1_qpps, m2_qpps, max_secs)
         self.pub_speed_cmd.publish(cmd)
 
         rospy.sleep(6)
         self._check_stats(
             0, 0, qpps_delta,
-            start_m1_dist + m1_dist, start_m2_dist + m2_dist, dist_delta
+            start_m1_dist + (m1_qpps * max_secs),
+            start_m2_dist + (m2_qpps * max_secs),
+            dist_delta
         )
 
     def test_reverse_normal(self):
@@ -53,17 +56,24 @@ class TestRoboclawNode(unittest.TestCase):
             start_m2_dist = self.stats.m2_enc_val
 
         m1_qpps, m2_qpps = -2000, -2000
-        m1_dist, m2_dist = 4000, 4000
+        # m1_dist, m2_dist = 4000, 4000
+        max_secs = 2
         qpps_delta = 0
         dist_delta = 2000
 
-        cmd = self._create_speed_command(0, m1_qpps, m2_qpps, m1_dist, m2_dist)
+        cmd = self._create_speed_command(m1_qpps, m2_qpps, max_secs)
         self.pub_speed_cmd.publish(cmd)
 
         rospy.sleep(6)
+        # self._check_stats(
+        #     0, 0, qpps_delta,
+        #     start_m1_dist - m1_dist, start_m2_dist - m2_dist, dist_delta
+        # )
         self._check_stats(
             0, 0, qpps_delta,
-            start_m1_dist - m1_dist, start_m2_dist - m2_dist, dist_delta
+            start_m1_dist + (m1_qpps * max_secs),
+            start_m2_dist + (m2_qpps * max_secs),
+            dist_delta
         )
 
     def test_left_normal(self):
@@ -73,17 +83,24 @@ class TestRoboclawNode(unittest.TestCase):
             start_m2_dist = self.stats.m2_enc_val
 
         m1_qpps, m2_qpps = 1000, -1000
-        m1_dist, m2_dist = 2000, 2000
+        # m1_dist, m2_dist = 2000, 2000
+        max_secs = 2
         qpps_delta = 0
         dist_delta = 2000
 
-        cmd = self._create_speed_command(0, m1_qpps, m2_qpps, m1_dist, m2_dist)
+        cmd = self._create_speed_command(m1_qpps, m2_qpps, max_secs)
         self.pub_speed_cmd.publish(cmd)
 
         rospy.sleep(6)
+        # self._check_stats(
+        #     0, 0, qpps_delta,
+        #     start_m1_dist + m1_dist, start_m2_dist - m2_dist, dist_delta
+        # )
         self._check_stats(
             0, 0, qpps_delta,
-            start_m1_dist + m1_dist, start_m2_dist - m2_dist, dist_delta
+            start_m1_dist + (m1_qpps * max_secs),
+            start_m2_dist + (m2_qpps * max_secs),
+            dist_delta
         )
 
     def test_right_normal(self):
@@ -93,30 +110,35 @@ class TestRoboclawNode(unittest.TestCase):
             start_m2_dist = self.stats.m2_enc_val
 
         m1_qpps, m2_qpps = -1000, 1000
-        m1_dist, m2_dist = 2000, 2000
+        # m1_dist, m2_dist = 2000, 2000
+        max_secs = 2
         qpps_delta = 0
         dist_delta = 2000
 
-        cmd = self._create_speed_command(0, m1_qpps, m2_qpps, m1_dist, m2_dist)
+        cmd = self._create_speed_command(m1_qpps, m2_qpps, max_secs)
         self.pub_speed_cmd.publish(cmd)
 
         rospy.sleep(6)
+        # self._check_stats(
+        #     0, 0, qpps_delta,
+        #     start_m1_dist - m1_dist, start_m2_dist + m2_dist, dist_delta
+        # )
         self._check_stats(
             0, 0, qpps_delta,
-            start_m1_dist - m1_dist, start_m2_dist + m2_dist, dist_delta
+            start_m1_dist + (m1_qpps * max_secs),
+            start_m2_dist + (m2_qpps * max_secs),
+            dist_delta
         )
 
     def _stats_callback(self, cmd):
         with self.lock:
             self.stats = cmd
 
-    def _create_speed_command(self, accel, m1_speed, m2_speed, m1_dist, m2_dist):
+    def _create_speed_command(self, m1_qpps, m2_qpps, max_secs):
         cmd = SpeedCommand()
-        cmd.accel = accel
-        cmd.m1_speed = m1_speed
-        cmd.m2_speed = m2_speed
-        cmd.m1_dist = m1_dist
-        cmd.m2_dist = m2_dist
+        cmd.m1_qpps = m1_qpps
+        cmd.m2_qpps = m2_qpps
+        cmd.max_secs = max_secs
         return cmd
 
     def _check_stats(self, m1_qpps, m2_qpps, qpps_delta, m1_val, m2_val, val_delta):

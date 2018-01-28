@@ -25,7 +25,7 @@ class TestRoboclawStub(unittest.TestCase):
         self.check_stats(0, 0, 0, 0)
 
         # Drive forward
-        self.rbc_ctl.SpeedAccelDistanceM1M2(0, 1000, 2000, 1000, 2000, True)
+        self.rbc_ctl.driveM1M2qpps(1000, 1000, 2)
 
         self.roboclaw._simulate(sim_secs=0.5)
         self.check_stats(1000, 1000, 500, 500)
@@ -39,7 +39,7 @@ class TestRoboclawStub(unittest.TestCase):
         self.check_stats(0, 0, 2000, 2000)
 
         # Drive backward
-        self.rbc_ctl.SpeedAccelDistanceM1M2(0, -2000, 4000, -2000, 4000, True)
+        self.rbc_ctl.driveM1M2qpps(-2000, -2000, 2)
 
         self.roboclaw._simulate(sim_secs=0.5)
         self.check_stats(-2000, -2000, 1000, 1000)
@@ -60,7 +60,7 @@ class TestRoboclawStub(unittest.TestCase):
         self.rbc_ctl = RoboclawControl(self.roboclaw)
 
         # Turn left
-        self.rbc_ctl.SpeedAccelDistanceM1M2(0, 1000, 2000, -1000, 2000, True)
+        self.rbc_ctl.driveM1M2qpps(1000, -1000, 2)
 
         self.roboclaw._simulate(sim_secs=0.5)
         self.check_stats(1000, -1000, 500, -500)
@@ -71,7 +71,7 @@ class TestRoboclawStub(unittest.TestCase):
         self.check_stats(0, 0, 2000, -2000)
 
         # Turn right
-        self.rbc_ctl.SpeedAccelDistanceM1M2(0, -2000, 4000, 2000, 4000, True)
+        self.rbc_ctl.driveM1M2qpps(-2000, 2000, 2)
 
         self.roboclaw._simulate(sim_secs=0.5)
         self.check_stats(-2000, 2000, 1000, -1000)
@@ -86,7 +86,7 @@ class TestRoboclawStub(unittest.TestCase):
         self.rbc_ctl = RoboclawControl(self.roboclaw)
 
         # Start moving forward
-        self.rbc_ctl.SpeedAccelDistanceM1M2(0, 1000, 5000, 1000, 5000, True)
+        self.rbc_ctl.driveM1M2qpps(1000, 1000, 5)
         self.roboclaw._simulate(sim_secs=0.5)
         self.check_stats(1000, 1000, 500, 500)
 

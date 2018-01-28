@@ -108,18 +108,29 @@ class RoboclawControl:
         :rtype: bool
         """
         with self._serial_lock:
-            return self.SpeedAccelDistanceM1M2(
-                accel=0, speed1=0, distance1=0, speed2=0, distance2=0, reset_buffer=1
-            )
+            # return self.SpeedAccelDistanceM1M2(
+            #     accel=0, speed1=0, distance1=0, speed2=0, distance2=0, reset_buffer=1
+            # )
+            return self.driveM1M2qpps(0, 0, 0)
 
-    def SpeedAccelDistanceM1M2(self, accel, speed1, distance1, speed2, distance2, reset_buffer):
+    def driveM1M2qpps(self, m1_qpps, m2_qpps, max_secs):
         with self._serial_lock:
             return self._roboclaw.SpeedAccelDistanceM1M2(
-                self._address, accel,
-                speed1, distance1,
-                speed2, distance2,
-                reset_buffer
+                self._address,
+                accel=max(abs(m1_qpps), abs(m2_qpps)) * 2,
+                speed1=m1_qpps, distance1=abs(m1_qpps * max_secs),
+                speed2=m2_qpps, distance2=abs(m2_qpps * max_secs),
+                buffer=1
             )
+
+    # def SpeedAccelDistanceM1M2(self, accel, speed1, distance1, speed2, distance2, reset_buffer):
+    #     with self._serial_lock:
+    #         return self._roboclaw.SpeedAccelDistanceM1M2(
+    #             self._address, accel,
+    #             speed1, distance1,
+    #             speed2, distance2,
+    #             reset_buffer
+    #         )
 
     def read_stats(self):
         """Read and return the monitorinng values of the Roboclaw

@@ -15,9 +15,9 @@ from ros_roboclaw.roboclaw_stub import RoboclawStub
 DEFAULT_DEV_NAME = "/dev/ttyACM0"
 DEFAULT_BAUD_RATE = 115200
 DEFAULT_NODE_NAME = "roboclaw1"
-DEFAULT_LOOP_HZ = 30
+DEFAULT_LOOP_HZ = 10
 DEFAULT_ADDRESS = 0x80
-DEFAULT_DEADMAN_SEC = 30
+DEFAULT_DEADMAN_SEC = 10
 
 
 class RoboclawNode:
@@ -157,19 +157,16 @@ class RoboclawNode:
         """
         rospy.logdebug("Received SpeedCommand message")
         rospy.logdebug(
-            "[M1 speed: {}, dist: {}] [M2 speed: {}, dist: {}] [Accel: {}]"
-            .format(
-                command.m1_speed, command.m1_dist,
-                command.m2_speed, command.m2_dist,
-                command.accel
-            )
+            "[M1 speed: {}] [M2 speed: {}] [Max Secs: {}]"
+            .format(command.m1_qpps, command.m2_qpps, command.max_secs)
         )
         self._last_cmd_time = rospy.get_rostime()
 
-        success = self._rbc_ctl.SpeedAccelDistanceM1M2(
-            command.accel, command.m1_speed, command.m1_dist,
-            command.m2_speed, command.m2_dist, reset_buffer=1
-        )
+        # success = self._rbc_ctl.SpeedAccelDistanceM1M2(
+        #     command.accel, command.m1_speed, command.m1_dist,
+        #     command.m2_speed, command.m2_dist, reset_buffer=1
+        # )
+        success = self._rbc_ctl.driveM1M2qpps(command.m1_qpps, command.m2_qpps, command.max_secs)
         if not success:
             rospy.logerr(
                 "RoboclawControl SpeedAccelDistanceM1M2({}) failed".format(command.forward_pct)
