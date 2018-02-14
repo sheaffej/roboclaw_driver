@@ -1,3 +1,11 @@
+# This library was obtained from the Ion Motion Control download website
+
+# There have been very few modifications to this file. Mainly formatting & comments.
+# Therefore the original library file should also work unmodified.
+
+# Original is available here:
+# http://downloads.ionmc.com/code/roboclaw_python.zip
+
 import random
 import serial
 import struct
