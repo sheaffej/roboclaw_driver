@@ -1,4 +1,3 @@
-# ROS driver node for Roboclaw motor controller
 # `roboclaw_driver`
 
 A ROS node providing a driver interface to the Roboclaw motor controller.
@@ -7,14 +6,14 @@ A ROS node providing a driver interface to the Roboclaw motor controller.
 There are several existing ROS nodes for the roboclaw, including:
 
 * [https://github.com/sonyccd/roboclaw_ros]()
-* [https://github.com/doisyg/roboclaw_ros]() (fork of sonyccd's repo)
+* [https://github.com/doisyg/roboclaw_ros]()
 * [https://github.com/SV-ROS/roboclaw_driver]()
 
 All three follow a similar approach, where the Roboclaw node is essentially the 2-wheel differential drive base (aka base_link). Therefore, the Roboclaw node in these repositories compute and publish the Odometry and tf frame data.
 
-However I am buidling a 4-wheel differential drive base that drives two Roboclaw controllers. So I would have a separate base_link node, that sends commands to two separate Roboclaw driver nodes. Therefore this roboclaw_driver node is more of a ROS wrapper to the Roboclaw controller. 
+However I am buidling a 4-wheel differential drive base that drives two Roboclaw controllers. So I would have a separate base node, that sends commands to two separate Roboclaw driver nodes. Therefore this roboclaw driver node is more of a ROS wrapper to the Roboclaw controller. 
 
-In my robot, the Odometry and tf frames will be computed and published by the base_link node, using encoder readings published by the Roboclaw nodes as well as fused with IMU sensor data to improve the Odometry accuracy.
+In my robot, the Odometry and tf frames will be computed and published by the base node, using encoder readings published by the Roboclaw nodes as well as fused with IMU sensor data to improve the Odometry accuracy.
 
 ## Parameters
 
