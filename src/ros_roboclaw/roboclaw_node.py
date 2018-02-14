@@ -14,10 +14,11 @@ from ros_roboclaw.roboclaw_stub import RoboclawStub
 
 DEFAULT_DEV_NAME = "/dev/ttyACM0"
 DEFAULT_BAUD_RATE = 115200
-DEFAULT_NODE_NAME = "roboclaw1"
+DEFAULT_NODE_NAME = "roboclaw"
 DEFAULT_LOOP_HZ = 10
 DEFAULT_ADDRESS = 0x80
 DEFAULT_DEADMAN_SEC = 10
+DEFAULT_SPEED_CMD_TOPIC = "base_node/speed_command"
 
 
 class RoboclawNode:
@@ -36,11 +37,7 @@ class RoboclawNode:
         self._last_cmd_time = rospy.get_rostime()
 
         # Set up the Publishers
-        self._stats_pub = rospy.Publisher(
-            '{}/stats'.format(self._node_name),
-            Stats,
-            queue_size=1
-        )
+        self._stats_pub = rospy.Publisher('~stats', Stats, queue_size=1)
 
         # Set up the Diagnostic Updater
         self._diag_updater = diagnostic_updater.Updater()
@@ -49,7 +46,7 @@ class RoboclawNode:
 
         # Set up the SpeedCommand Subscriber
         rospy.Subscriber(
-            "{}/speed_command".format(self._node_name),
+            rospy.get_param("~speed_cmd_topic", DEFAULT_SPEED_CMD_TOPIC),
             SpeedCommand,
             self._speed_cmd_callback
         )

@@ -36,7 +36,7 @@ class TestRoboclawNode(unittest.TestCase):
         max_secs = 2
         # m1_dist, m2_dist = 2000, 2000
         qpps_delta = 0
-        dist_delta = 1000
+        dist_delta = max(abs(m1_qpps), abs(m2_qpps))/2
 
         cmd = self._create_speed_command(m1_qpps, m2_qpps, max_secs)
         self.pub_speed_cmd.publish(cmd)
@@ -59,7 +59,7 @@ class TestRoboclawNode(unittest.TestCase):
         # m1_dist, m2_dist = 4000, 4000
         max_secs = 2
         qpps_delta = 0
-        dist_delta = 2000
+        dist_delta = max(abs(m1_qpps), abs(m2_qpps))/2
 
         cmd = self._create_speed_command(m1_qpps, m2_qpps, max_secs)
         self.pub_speed_cmd.publish(cmd)
@@ -86,7 +86,7 @@ class TestRoboclawNode(unittest.TestCase):
         # m1_dist, m2_dist = 2000, 2000
         max_secs = 2
         qpps_delta = 0
-        dist_delta = 2000
+        dist_delta = max(abs(m1_qpps), abs(m2_qpps))/2
 
         cmd = self._create_speed_command(m1_qpps, m2_qpps, max_secs)
         self.pub_speed_cmd.publish(cmd)
@@ -113,7 +113,7 @@ class TestRoboclawNode(unittest.TestCase):
         # m1_dist, m2_dist = 2000, 2000
         max_secs = 2
         qpps_delta = 0
-        dist_delta = 2000
+        dist_delta = max(abs(m1_qpps), abs(m2_qpps))/2
 
         cmd = self._create_speed_command(m1_qpps, m2_qpps, max_secs)
         self.pub_speed_cmd.publish(cmd)
