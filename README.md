@@ -50,6 +50,40 @@ SpeedCommand topic: `base_node/speed_command`
 * M1 and M2 motor speed in QPPS
 * Max seconds before automatically stopping
 
+## Launching
+Clone the repository
+
+```
+cd $ROS_WORKSPACE/src
+git clone https://github.com/sheaffej/roboclaw_driver.git
+```
+
+Build the package to create the message bindings
+```
+cd $ROS_WORKSPACE
+catkin_make
+```
+
+Launch the node
+```
+roslaunch roboclaw_driver roboclaw_node
+```
+
+## Tests
+
+### Unit tests
+The only logic that is non-trivial and therefore could break under refactoring is the RoboclawStub object that simulates the hardware controller for use in testing.
+
+```
+pytest src/test_roboclaw_stub_unit.py
+```
+
+### Node integration tests
+Launches a test node to control the roboclaw_driver node using the simulated roboclaw controller (RoboclawStub)
+
+```
+rostest roboclaw_driver stub.launch
+```
 
 ## Attributions
 Roboclaw library is slightly modified from the version downloadable from the Ion Motion control site:
