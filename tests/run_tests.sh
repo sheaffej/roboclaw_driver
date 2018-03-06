@@ -18,4 +18,4 @@ echo "============================"
 echo "     Running Node Tests     "
 echo "============================"
 echo
-rostest roboclaw_driver test.launch
+rostest roboclaw_driver stub.test

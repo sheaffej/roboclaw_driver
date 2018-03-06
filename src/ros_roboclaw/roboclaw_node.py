@@ -18,7 +18,8 @@ DEFAULT_NODE_NAME = "roboclaw"
 DEFAULT_LOOP_HZ = 10
 DEFAULT_ADDRESS = 0x80
 DEFAULT_DEADMAN_SEC = 10
-DEFAULT_SPEED_CMD_TOPIC = "base_node/speed_command"
+DEFAULT_STATS_TOPIC = "~stats"
+DEFAULT_SPEED_CMD_TOPIC = "~speed_command"
 
 
 class RoboclawNode:
@@ -37,7 +38,12 @@ class RoboclawNode:
         self._last_cmd_time = rospy.get_rostime()
 
         # Set up the Publishers
-        self._stats_pub = rospy.Publisher('~stats', Stats, queue_size=1)
+        self._stats_pub = rospy.Publisher(
+            # '~stats',
+            rospy.get_param("~stats_topic", DEFAULT_STATS_TOPIC),
+            Stats,
+            queue_size=1
+        )
 
         # Set up the Diagnostic Updater
         self._diag_updater = diagnostic_updater.Updater()
@@ -159,10 +165,6 @@ class RoboclawNode:
         )
         self._last_cmd_time = rospy.get_rostime()
 
-        # success = self._rbc_ctl.SpeedAccelDistanceM1M2(
-        #     command.accel, command.m1_speed, command.m1_dist,
-        #     command.m2_speed, command.m2_dist, reset_buffer=1
-        # )
         success = self._rbc_ctl.driveM1M2qpps(command.m1_qpps, command.m2_qpps, command.max_secs)
         if not success:
             rospy.logerr(

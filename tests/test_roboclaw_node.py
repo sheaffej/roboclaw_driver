@@ -10,6 +10,9 @@ from roboclaw_driver.msg import SpeedCommand, Stats
 PKG = 'roboclaw_driver'
 NAME = 'roboclaw_node_nodetest'
 
+DEFAULT_STATS_TOPIC = "/roboclaw/stats"
+DEFAULT_CMD_TOPIC = "/roboclaw/speed_command"
+
 
 class TestRoboclawNode(unittest.TestCase):
 
@@ -20,10 +23,19 @@ class TestRoboclawNode(unittest.TestCase):
         self.stats = Stats()
 
         rospy.init_node("roboclaw_test", log_level=rospy.DEBUG)
-        rospy.Subscriber("/roboclaw1/stats", Stats, self._stats_callback)
-        self.pub_speed_cmd = rospy.Publisher(
-            '/roboclaw1/speed_command', SpeedCommand, queue_size=1
+
+        rospy.Subscriber(
+            rospy.get_param("~stats_topic", DEFAULT_STATS_TOPIC),
+            Stats,
+            self._stats_callback
         )
+
+        self.pub_speed_cmd = rospy.Publisher(
+            rospy.get_param("~speed_cmd_topic", DEFAULT_CMD_TOPIC),
+            SpeedCommand,
+            queue_size=1
+        )
+
         rospy.sleep(1)  # Let subscribers connect
 
     def test_forward_normal(self):
@@ -34,7 +46,6 @@ class TestRoboclawNode(unittest.TestCase):
 
         m1_qpps, m2_qpps = 1000, 1000
         max_secs = 2
-        # m1_dist, m2_dist = 2000, 2000
         qpps_delta = 0
         dist_delta = max(abs(m1_qpps), abs(m2_qpps))/2
 
@@ -56,7 +67,6 @@ class TestRoboclawNode(unittest.TestCase):
             start_m2_dist = self.stats.m2_enc_val
 
         m1_qpps, m2_qpps = -2000, -2000
-        # m1_dist, m2_dist = 4000, 4000
         max_secs = 2
         qpps_delta = 0
         dist_delta = max(abs(m1_qpps), abs(m2_qpps))/2
@@ -65,10 +75,6 @@ class TestRoboclawNode(unittest.TestCase):
         self.pub_speed_cmd.publish(cmd)
 
         rospy.sleep(6)
-        # self._check_stats(
-        #     0, 0, qpps_delta,
-        #     start_m1_dist - m1_dist, start_m2_dist - m2_dist, dist_delta
-        # )
         self._check_stats(
             0, 0, qpps_delta,
             start_m1_dist + (m1_qpps * max_secs),
@@ -83,7 +89,6 @@ class TestRoboclawNode(unittest.TestCase):
             start_m2_dist = self.stats.m2_enc_val
 
         m1_qpps, m2_qpps = 1000, -1000
-        # m1_dist, m2_dist = 2000, 2000
         max_secs = 2
         qpps_delta = 0
         dist_delta = max(abs(m1_qpps), abs(m2_qpps))/2
@@ -92,10 +97,6 @@ class TestRoboclawNode(unittest.TestCase):
         self.pub_speed_cmd.publish(cmd)
 
         rospy.sleep(6)
-        # self._check_stats(
-        #     0, 0, qpps_delta,
-        #     start_m1_dist + m1_dist, start_m2_dist - m2_dist, dist_delta
-        # )
         self._check_stats(
             0, 0, qpps_delta,
             start_m1_dist + (m1_qpps * max_secs),
@@ -110,7 +111,6 @@ class TestRoboclawNode(unittest.TestCase):
             start_m2_dist = self.stats.m2_enc_val
 
         m1_qpps, m2_qpps = -1000, 1000
-        # m1_dist, m2_dist = 2000, 2000
         max_secs = 2
         qpps_delta = 0
         dist_delta = max(abs(m1_qpps), abs(m2_qpps))/2
@@ -119,10 +119,6 @@ class TestRoboclawNode(unittest.TestCase):
         self.pub_speed_cmd.publish(cmd)
 
         rospy.sleep(6)
-        # self._check_stats(
-        #     0, 0, qpps_delta,
-        #     start_m1_dist - m1_dist, start_m2_dist + m2_dist, dist_delta
-        # )
         self._check_stats(
             0, 0, qpps_delta,
             start_m1_dist + (m1_qpps * max_secs),
