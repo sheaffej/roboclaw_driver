@@ -9,7 +9,7 @@ echo "     Running Unit Tests     "
 echo "============================"
 echo
 pushd $DIR >/dev/null
-pytest test_roboclaw_stub_unit.py
+pytest -v test_roboclaw_stub_unit.py
 popd > /dev/null
 
 # Node-level tests
