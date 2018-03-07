@@ -5,9 +5,9 @@ A ROS node providing a driver interface to the Roboclaw motor controller.
 ## Why another ROS Roboclaw driver?
 There are several existing ROS nodes for the roboclaw, including:
 
-* [https://github.com/sonyccd/roboclaw_ros]()
-* [https://github.com/doisyg/roboclaw_ros]()
-* [https://github.com/SV-ROS/roboclaw_driver]()
+* [https://github.com/sonyccd/roboclaw_ros](https://github.com/sonyccd/roboclaw_ros)
+* [https://github.com/doisyg/roboclaw_ros](https://github.com/doisyg/roboclaw_ros)
+* [https://github.com/SV-ROS/roboclaw_driver](https://github.com/SV-ROS/roboclaw_driver)
 
 All three follow a similar approach, where the Roboclaw node is essentially the 2-wheel differential drive base (aka base_link). Therefore, the Roboclaw node in these repositories compute and publish the Odometry and tf frame data.
 
