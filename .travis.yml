@@ -1,3 +1,25 @@
+# This Travis-CI integration uses ROS industrial_ci to perform unit- and node-level tests
+# using catkin_make run_tests.
+#
+#    https://github.com/ros-industrial/industrial_ci
+#
+# The tests to run are specified in the project's CMakeLists.txt at the end
+# in the "Testing" section.
+# 
+# Unit tests:
+#
+#   ## Add folders to be run by python nosetests
+#   catkin_add_nosetests(tests/my_unit_test.py)
+#
+# Node tests:
+#
+#   # Node-level tests
+#   if(CATKIN_ENABLE_TESTING)
+#     find_package(rostest REQUIRED)
+#     add_rostest(launch/node-level.test)
+#   endif()
+#
+
 sudo: required 
 dist: trusty 
 
@@ -7,16 +29,7 @@ compiler:
 python:
   - "2.7"
 
-# notifications:
-#   email:
-#     on_success: always
-#     on_failure: always
-
-
 env:
-  # global:
-  #   # - BEFORE_SCRIPT='./your_custom_PREprocess.sh'
-  #   - AFTER_SCRIPT='./tests/run_tests.sh'
   matrix:
     - USE_DEB=true  ROS_DISTRO="kinetic"   ROS_REPOSITORY_PATH=http://packages.ros.org/ros/ubuntu
 
