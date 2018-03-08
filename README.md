@@ -1,5 +1,7 @@
 # `roboclaw_driver`
 
+[![Build Status](https://travis-ci.org/sheaffej/roboclaw_driver.svg?branch=master)](https://travis-ci.org/sheaffej/roboclaw_driver)
+
 A ROS node providing a driver interface to the Roboclaw motor controller.
 
 ## Why another ROS Roboclaw driver?
