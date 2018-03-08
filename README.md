@@ -19,13 +19,14 @@ In my robot, the Odometry and tf frames will be computed and published by the se
 
 ## Parameters
 
-* `~speed_cmd_topic` - Topic on which to listen for SpeedCommand messages
 * `~dev_name` - Serial (aka USB) device name
 * `~baud` - Default 115200
 * `~address` - Serial address, default 0x80
 * `~loop_hz` - Number of publisher loops per second (Hertz)
 * `~deadman_secs` - Seconds until motors stop without additional commands
 * `~test_mode` - True = run the Roboclaw simulator stub for testing
+* `~speed_cmd_topic` - Topic on which to listen for SpeedCommand messages
+* `~stats_topic` - Topic on which Stats messages will be published
 
 ## Topics
 
