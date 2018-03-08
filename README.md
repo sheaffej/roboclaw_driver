@@ -75,6 +75,10 @@ roslaunch roboclaw_driver roboclaw_node
 
 ## Tests
 
+Unit and node-level tests are performed by `catkin_make run_tests`. These are also automatically run by the Travi-CI config.
+
+The script `tests/run_tests.sh` is a helper script to manually run the unit tests using `pytest` and the node-level tests using `rostest`. I like to run the helper script before committing changes to the repo, the Travis-CI runs them again as part of the automated build testing.
+
 ### Unit tests
 The only logic that is non-trivial and therefore likely to break during refactoring is the RoboclawStub object that simulates the hardware controller for use in testing. The rest of the logic is more of a wrapper, and therefore will be tested during node-level integration testing.
 
@@ -92,3 +96,5 @@ rostest roboclaw_driver stub.launch
 ## Attributions
 The `roboclaw.py` library is every so slightly modified (basic formatting and comments) from the version downloadable from the Ion Motion control site :
 [http://downloads.ionmc.com/code/roboclaw_python.zip]()
+
+The Travis-CI configuration uses ROS Industrial's `industrial_ci`: [https://github.com/ros-industrial/industrial_ci](https://github.com/ros-industrial/industrial_ci)
