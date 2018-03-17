@@ -22,7 +22,7 @@ class TestRoboclawNode(unittest.TestCase):
         self.lock = threading.RLock()
         self.stats = Stats()
 
-        rospy.init_node("roboclaw_test", log_level=rospy.DEBUG)
+        rospy.init_node("roboclaw_test", log_level=rospy.DEBUG, anonymous=True)
 
         rospy.Subscriber(
             rospy.get_param("~stats_topic", DEFAULT_STATS_TOPIC),

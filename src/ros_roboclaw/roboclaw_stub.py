@@ -1,7 +1,6 @@
 import threading
-import time
+from datetime import datetime
 
-SIM_LOOP_SECS = 0.1
 MAX_MOTOR_CURRENT = 2.1  # Amps
 
 
@@ -48,21 +47,20 @@ class RoboclawStub:
         self._m1_actual_dist = 0
         self._m2_actual_dist = 0
 
-        self._thread = threading.Thread(target=self._sim_loop)
         self._state_lock = threading.RLock()
+        self._last_sim_update = datetime.now()
 
-    def _sim_loop(self):
-        """The loop run by simulation thread
-        """
-        while self._running:
-            self._simulate()
-            time.sleep(SIM_LOOP_SECS)
-
-    def _simulate(self, sim_secs=SIM_LOOP_SECS):
+    def _simulate(self, sim_secs=None):
         """Run by _sim_loop to calculate the next state values.
         This logic is a separate from the _sim_loop so it can easily be called by a unittest.
         """
         with self._state_lock:
+
+            if not sim_secs:
+                nowtime = datetime.now()
+                sim_secs = (nowtime - self._last_sim_update).total_seconds()
+                self._last_sim_update = nowtime
+
             if self._m1_actual_dist >= self._m1_target_dist:
                 self._m1_target_qpps = 0
 
@@ -83,22 +81,12 @@ class RoboclawStub:
             pct = abs(float(self._m2_enc_qpps) / float(self._max_qpps))
             self._m2_current = MAX_MOTOR_CURRENT * pct
 
-    def start_simulator(self):
-        """Starts the simulation thread
-        """
-        self._running = True
-        self._thread.start()
-
-    def shutdown(self):
-        """Stops the simulation thread
-        """
-        self._running = False
-
     #
     # Methods that match the roboclaw.py libary's functions
     #
     def SpeedAccelDistanceM1M2(self, address, accel, speed1, distance1, speed2, distance2, buffer):
         with self._state_lock:
+            self._simulate()
             self._target_accel = accel
             self._m1_target_qpps = speed1
             self._m2_target_qpps = speed2
@@ -110,6 +98,7 @@ class RoboclawStub:
 
     def ReadEncM1(self, address):
         with self._state_lock:
+            self._simulate()
             return (self._read_success, self._m1_enc_val)
 
     def ReadEncM2(self, address):

@@ -15,9 +15,9 @@ from ros_roboclaw.roboclaw_stub import RoboclawStub
 DEFAULT_DEV_NAME = "/dev/ttyACM0"
 DEFAULT_BAUD_RATE = 115200
 DEFAULT_NODE_NAME = "roboclaw"
-DEFAULT_LOOP_HZ = 10
+DEFAULT_LOOP_HZ = 100
 DEFAULT_ADDRESS = 0x80
-DEFAULT_DEADMAN_SEC = 10
+DEFAULT_DEADMAN_SEC = 3
 DEFAULT_STATS_TOPIC = "~stats"
 DEFAULT_SPEED_CMD_TOPIC = "~speed_command"
 
@@ -39,7 +39,6 @@ class RoboclawNode:
 
         # Set up the Publishers
         self._stats_pub = rospy.Publisher(
-            # '~stats',
             rospy.get_param("~stats_topic", DEFAULT_STATS_TOPIC),
             Stats,
             queue_size=1
@@ -56,6 +55,10 @@ class RoboclawNode:
             SpeedCommand,
             self._speed_cmd_callback
         )
+
+        # For logdebug
+        self.prev_m1_val = 0
+        self.prev_m2_val = 0
 
     @property
     def roboclaw_control(self):
@@ -74,7 +77,6 @@ class RoboclawNode:
             roboclaw = Roboclaw(dev_name, baud_rate)
         else:
             roboclaw = RoboclawStub(dev_name, baud_rate)
-            roboclaw.start_simulator()
         self._rbc_ctl = RoboclawControl(roboclaw, address)
 
     def run(self, loop_hz=10, deadman_secs=1):
@@ -91,15 +93,18 @@ class RoboclawNode:
             rospy.loginfo("Starting main loop")
 
             while not rospy.is_shutdown():
-                if (rospy.get_rostime() - self._last_cmd_time).to_sec() > deadman_secs:
-                    rospy.loginfo("Did not receive a command for over 1 sec: Stopping motors")
-                    self._rbc_ctl.stop()
 
                 # Read and publish encoder readings
                 stats = self._rbc_ctl.read_stats()
                 for error in stats.error_messages:
                     rospy.logwarn(error)
                 self._publish_stats(stats)
+
+                # Stop motors if running and no commands are being received
+                if (stats.m1_enc_qpps != 0 or stats.m2_enc_qpps != 0):
+                    if (rospy.get_rostime() - self._last_cmd_time).to_sec() > deadman_secs:
+                        rospy.loginfo("Did not receive a command for over 1 sec: Stopping motors")
+                        self._rbc_ctl.stop()
 
                 # Publish diagnostics
                 self._diag_updater.update()
@@ -116,12 +121,20 @@ class RoboclawNode:
             :param roboclaw_control.RoboclawStats stats: Stats from the Roboclaw controller
         """
         msg = Stats()
+        msg.header.stamp = rospy.get_rostime()
 
         msg.m1_enc_val = stats.m1_enc_val
         msg.m1_enc_qpps = stats.m1_enc_qpps
 
         msg.m2_enc_val = stats.m2_enc_val
         msg.m2_enc_qpps = stats.m2_enc_qpps
+
+        # rospy.logdebug("Encoder diffs M1:{}, M2:{}".format(
+        #     stats.m1_enc_val - self.prev_m1_val,
+        #     stats.m2_enc_val - self.prev_m2_val
+        # ))
+        self.prev_m1_val = stats.m1_enc_val
+        self.prev_m2_val = stats.m2_enc_val
 
         self._stats_pub.publish(msg)
 
@@ -175,8 +188,6 @@ class RoboclawNode:
         """Performs Node shutdown tasks
         """
         rospy.loginfo("Shutting down...")
-        if isinstance(self._rbc_ctl.roboclaw, RoboclawStub):
-            self._rbc_ctl.roboclaw.shutdown()
 
 
 if __name__ == "__main__":

@@ -163,7 +163,7 @@ class TestRoboclawStub(unittest.TestCase):
         ]
         for label, actual_val, expected_val in tests:
             self.assertEqual(
-                actual_val, expected_val,
+                round(actual_val), round(expected_val),
                 msg="{} expected: {}, actual: {}".format(label, expected_val, actual_val)
             )
 

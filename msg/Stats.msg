@@ -1,3 +1,6 @@
+# std_msgs/Header 
+Header header
+
 # Motor 1 & 2 encoder values
 int32 m1_enc_val
 int32 m2_enc_val

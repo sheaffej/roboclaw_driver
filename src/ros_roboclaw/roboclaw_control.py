@@ -123,15 +123,6 @@ class RoboclawControl:
                 buffer=1
             )
 
-    # def SpeedAccelDistanceM1M2(self, accel, speed1, distance1, speed2, distance2, reset_buffer):
-    #     with self._serial_lock:
-    #         return self._roboclaw.SpeedAccelDistanceM1M2(
-    #             self._address, accel,
-    #             speed1, distance1,
-    #             speed2, distance2,
-    #             reset_buffer
-    #         )
-
     def read_stats(self):
         """Read and return the monitorinng values of the Roboclaw
 
@@ -141,47 +132,44 @@ class RoboclawControl:
         stats = RoboclawStats()
 
         # Read encoder value
-        try:
-            with self._serial_lock:
+        with self._serial_lock:
+            try:
                 response = self._roboclaw.ReadEncM1(self._address)
-            if response[0]:
-                stats.m1_enc_val = response[1]
-            else:
-                raise ValueError("Enoder1 read failed CRC or number of retries")
-        except ValueError as e:
-            stats.error_messages.append("Encoder1 value ValueError: {}".format(e.message))
-            raise
+                if response[0]:
+                    stats.m1_enc_val = response[1]
+                else:
+                    raise ValueError("Enoder1 read failed CRC or number of retries")
+            except ValueError as e:
+                stats.error_messages.append("Encoder1 value ValueError: {}".format(e.message))
+                raise
 
-        try:
-            with self._serial_lock:
+            try:
                 response = self._roboclaw.ReadEncM2(self._address)
-            if response[0]:
-                stats.m2_enc_val = response[1]
-            else:
-                raise ValueError("Enoder2 read failed CRC or number of retries")
-        except ValueError:
-            stats.error_messages.append("Encoder2 value ValueError: {}".format(e.message))
+                if response[0]:
+                    stats.m2_enc_val = response[1]
+                else:
+                    raise ValueError("Enoder2 read failed CRC or number of retries")
+            except ValueError:
+                stats.error_messages.append("Encoder2 value ValueError: {}".format(e.message))
 
-        # Read encoder speed
-        try:
-            with self._serial_lock:
+            # Read encoder speed
+            try:
                 response = self._roboclaw.ReadSpeedM1(self._address)
-            if response[0]:
-                stats.m1_enc_qpps = response[1]
-            else:
-                raise ValueError("Enoder1 speed read failed CRC or number of retries")
-        except ValueError as e:
-            stats.error_messages.append("Encoder1 speed ValueError: {}".format(e.message))
+                if response[0]:
+                    stats.m1_enc_qpps = response[1]
+                else:
+                    raise ValueError("Enoder1 speed read failed CRC or number of retries")
+            except ValueError as e:
+                stats.error_messages.append("Encoder1 speed ValueError: {}".format(e.message))
 
-        try:
-            with self._serial_lock:
+            try:
                 response = self._roboclaw.ReadSpeedM2(self._address)
-            if response[0]:
-                stats.m2_enc_qpps = response[1]
-            else:
-                raise ValueError("Enoder2 read failed CRC or number of retries")
-        except ValueError:
-            stats.error_messages.append("Encoder2 speed ValueError: {}".format(e.message))
+                if response[0]:
+                    stats.m2_enc_qpps = response[1]
+                else:
+                    raise ValueError("Enoder2 read failed CRC or number of retries")
+            except ValueError:
+                stats.error_messages.append("Encoder2 speed ValueError: {}".format(e.message))
 
         return stats
 
@@ -193,52 +181,48 @@ class RoboclawControl:
         """
         diag = RoboclawDiagnostics()
 
-        # Read motor current
-        try:
-            with self._serial_lock:
+        with self._serial_lock:
+            # Read motor current
+            try:
                 success, cur1, cur2 = self._roboclaw.ReadCurrents(self._address)
-            diag.m1_current = cur1 / 100.0
-            diag.m2_current = cur2 / 100.0
-        except ValueError as e:
-            diag.error_messages.append("Motor currents ValueError: {}".format(e.message))
+                diag.m1_current = cur1 / 100.0
+                diag.m2_current = cur2 / 100.0
+            except ValueError as e:
+                diag.error_messages.append("Motor currents ValueError: {}".format(e.message))
 
-        # Read Roboclaw temperature
-        try:
-            with self._serial_lock:
+            # Read Roboclaw temperature
+            try:
                 success, temp = self._roboclaw.ReadTemp(self._address)
-            diag.temp1 = temp / 10.0
-        except ValueError as e:
-            diag.error_messages.append("Temperature 1 ValueError: {}".format(e.message))
+                diag.temp1 = temp / 10.0
+            except ValueError as e:
+                diag.error_messages.append("Temperature 1 ValueError: {}".format(e.message))
 
-        try:
-            with self._serial_lock:
+            try:
                 success, temp = self._roboclaw.ReadTemp2(self._address)
-            diag.temp2 = temp / 10.0
-        except ValueError as e:
-            diag.error_messages.append("Temperature 2 ValueError: {}".format(e.message))
+                diag.temp2 = temp / 10.0
+            except ValueError as e:
+                diag.error_messages.append("Temperature 2 ValueError: {}".format(e.message))
 
-        # Read main battery voltage
-        try:
-            with self._serial_lock:
+            # Read main battery voltage
+            try:
                 success, volts = self._roboclaw.ReadMainBatteryVoltage(self._address)
-            diag.main_battery_v = volts / 10.0
-        except ValueError as e:
-            diag.error_messages.append("Main battery voltage ValueError: {}".format(e.message))
+                diag.main_battery_v = volts / 10.0
+            except ValueError as e:
+                diag.error_messages.append("Main battery voltage ValueError: {}".format(e.message))
 
-        # Read logic battery voltage
-        try:
-            with self._serial_lock:
+            # Read logic battery voltage
+            try:
                 success, volts = self._roboclaw.ReadLogicBatteryVoltage(self._address)
-            diag.logic_battery_v = volts / 10.0
-        except ValueError as e:
-            diag.error_messages.append("Logic battery voltage ValueError: {}".format(e.message))
+                diag.logic_battery_v = volts / 10.0
+            except ValueError as e:
+                diag.error_messages.append(
+                    "Logic battery voltage ValueError: {}".format(e.message))
 
-        # Read errors
-        try:
-            with self._serial_lock:
+            # Read errors
+            try:
                 success, errors = self._roboclaw.ReadError(self._address)
-        except ValueError as e:
-            diag.error_messages.append("Read status/errors ValueError: {}".format(e.message))
+            except ValueError as e:
+                diag.error_messages.append("Read status/errors ValueError: {}".format(e.message))
 
         if errors:
             for err in ERRORS.keys():
