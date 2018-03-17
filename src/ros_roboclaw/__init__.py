@@ -1,2 +1,2 @@
 from . roboclaw import Roboclaw
-# from . import roboclaw_node
+from . import roboclaw_node
