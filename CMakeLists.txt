@@ -105,7 +105,7 @@ generate_messages(
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES roboclaw_driver
- # CATKIN_DEPENDS message_generation rospy std_msgs
+ CATKIN_DEPENDS message_generation rospy std_msgs
 #  DEPENDS system_lib
 )
 
@@ -159,10 +159,11 @@ include_directories(
 
 ## Mark executable scripts (Python etc.) for installation
 ## in contrast to setup.py, you can choose the destination
-# install(PROGRAMS
-#   scripts/my_python_script
-#   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-# )
+install(PROGRAMS
+  # scripts/my_python_script
+  src/ros_roboclaw/roboclaw_node.py
+  # DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
 
 ## Mark executables and/or libraries for installation
 # install(TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_node
