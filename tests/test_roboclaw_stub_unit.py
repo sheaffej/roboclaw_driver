@@ -2,8 +2,7 @@
 from __future__ import print_function
 import unittest
 
-from ros_roboclaw.roboclaw_stub import RoboclawStub
-from ros_roboclaw.roboclaw_control import RoboclawControl
+from roboclaw_driver import RoboclawStub, RoboclawControl
 
 PKG = 'roboclaw_driver'
 NAME = 'roboclaw_stub_unittest'

@@ -8,9 +8,8 @@ import diagnostic_updater
 import diagnostic_msgs
 
 from roboclaw_driver.msg import Stats, SpeedCommand
-from ros_roboclaw.roboclaw_control import RoboclawControl
-from ros_roboclaw.roboclaw import Roboclaw
-from ros_roboclaw.roboclaw_stub import RoboclawStub
+from roboclaw_driver import RoboclawControl, Roboclaw, RoboclawStub
+
 
 DEFAULT_DEV_NAME = "/dev/ttyACM0"
 DEFAULT_BAUD_RATE = 115200

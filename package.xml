@@ -63,8 +63,6 @@
   <exec_depend>diagnostic_updater</exec_depend>
 
   <exec_depend>python-serial</exec_depend>
-  <exec_depend>python-pytest</exec_depend>
-
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>
