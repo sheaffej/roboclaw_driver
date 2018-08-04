@@ -7,7 +7,7 @@ echo "============================"
 echo "     Running Unit Tests     "
 echo "============================"
 echo
-/usr/bin/env pytest --cache-clear --cov=roboclaw_driver $PKG_DIR/tests/unit/
+/usr/bin/env pytest -v --cache-clear --cov=roboclaw_driver $PKG_DIR/tests/unit/
 
 echo
 echo "============================"
