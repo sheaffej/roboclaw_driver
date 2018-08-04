@@ -1,18 +1,14 @@
 #!/bin/bash
 
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+PKG_DIR=`rospack find roboclaw_driver`
 
-# Unit-level tests
 echo
 echo "============================"
 echo "     Running Unit Tests     "
 echo "============================"
 echo
-pushd $DIR >/dev/null
-/usr/bin/env pytest -v test_roboclaw_stub_unit.py
-popd > /dev/null
+/usr/bin/env pytest -v --cache-clear --cov=roboclaw_driver $PKG_DIR/tests/unit/
 
-# Node-level tests
 echo
 echo "============================"
 echo "     Running Node Tests     "

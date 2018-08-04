@@ -1,6 +1,6 @@
 # `roboclaw_driver`
 
-[![Build Status](https://travis-ci.org/sheaffej/roboclaw_driver.svg?branch=master)](https://travis-ci.org/sheaffej/roboclaw_driver)
+[![Build Status](https://travis-ci.org/sheaffej/roboclaw_driver.svg?branch=master)](https://travis-ci.org/sheaffej/roboclaw_driver) [![Coverage Status](https://coveralls.io/repos/github/sheaffej/roboclaw_driver/badge.svg?branch=HEAD)](https://coveralls.io/github/sheaffej/roboclaw_driver?branch=HEAD)
 
 A ROS node providing a driver interface to the Roboclaw motor controller.
 
