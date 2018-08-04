@@ -201,10 +201,10 @@ catkin_install_python(
 # endif()
 
 ## Add folders to be run by python nosetests
-catkin_add_nosetests(tests/test_roboclaw_stub_unit.py)
+# catkin_add_nosetests(tests/test_roboclaw_stub_unit.py)
 
 # Node tests
-if(CATKIN_ENABLE_TESTING)
-  find_package(rostest REQUIRED)
-  add_rostest(launch/stub.test)
-endif()
+# if(CATKIN_ENABLE_TESTING)
+#   find_package(rostest REQUIRED)
+#   # add_rostest(launch/stub.test)
+# endif()
