@@ -94,10 +94,13 @@ class RoboclawNode:
             while not rospy.is_shutdown():
 
                 # Read and publish encoder readings
-                stats = self._rbc_ctl.read_stats()
+                read_success, stats = self._rbc_ctl.read_stats()
                 for error in stats.error_messages:
                     rospy.logwarn(error)
-                self._publish_stats(stats)
+                if read_success:
+                    self._publish_stats(stats)
+                else:
+                    rospy.logwarn("Error reading stats from Roboclaw: {}".format(stats))
 
                 # Stop motors if running and no commands are being received
                 if (stats.m1_enc_qpps != 0 or stats.m2_enc_qpps != 0):
