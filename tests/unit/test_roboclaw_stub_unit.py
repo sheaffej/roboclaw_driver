@@ -153,7 +153,8 @@ class TestRoboclawStub(unittest.TestCase):
             :param int m1_val:  Expected motor 1 encoder value
             :param int m2_val:  Expected motor 2 encoder value
         """
-        stats = self.rbc_ctl.read_stats()
+        success, stats = self.rbc_ctl.read_stats()
+        self.assertTrue(success)
         tests = [
             ("M1 QPPS", stats.m1_enc_qpps, m1_qpps),
             ("M2 QPPS", stats.m2_enc_qpps, m2_qpps),
