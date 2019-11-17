@@ -7,6 +7,8 @@ from roboclaw_driver import RoboclawStub, RoboclawControl
 PKG = 'roboclaw_driver'
 NAME = 'roboclaw_stub_unittest'
 
+ACCEL = 2000
+
 
 class TestRoboclawStub(unittest.TestCase):
 
@@ -24,7 +26,7 @@ class TestRoboclawStub(unittest.TestCase):
         self.check_stats(0, 0, 0, 0)
 
         # Drive forward
-        self.rbc_ctl.driveM1M2qpps(1000, 1000, 2)
+        self.rbc_ctl.driveM1M2qpps(1000, 1000, ACCEL, 2)
 
         self.roboclaw._simulate(sim_secs=0.5)
         self.check_stats(1000, 1000, 500, 500)
@@ -38,7 +40,7 @@ class TestRoboclawStub(unittest.TestCase):
         self.check_stats(0, 0, 2000, 2000)
 
         # Drive backward
-        self.rbc_ctl.driveM1M2qpps(-2000, -2000, 2)
+        self.rbc_ctl.driveM1M2qpps(-2000, -2000, ACCEL, 2)
 
         self.roboclaw._simulate(sim_secs=0.5)
         self.check_stats(-2000, -2000, 1000, 1000)
@@ -59,7 +61,7 @@ class TestRoboclawStub(unittest.TestCase):
         self.rbc_ctl = RoboclawControl(self.roboclaw)
 
         # Turn left
-        self.rbc_ctl.driveM1M2qpps(1000, -1000, 2)
+        self.rbc_ctl.driveM1M2qpps(1000, -1000, ACCEL, 2)
 
         self.roboclaw._simulate(sim_secs=0.5)
         self.check_stats(1000, -1000, 500, -500)
@@ -70,7 +72,7 @@ class TestRoboclawStub(unittest.TestCase):
         self.check_stats(0, 0, 2000, -2000)
 
         # Turn right
-        self.rbc_ctl.driveM1M2qpps(-2000, 2000, 2)
+        self.rbc_ctl.driveM1M2qpps(-2000, 2000, ACCEL, 2)
 
         self.roboclaw._simulate(sim_secs=0.5)
         self.check_stats(-2000, 2000, 1000, -1000)
@@ -85,12 +87,19 @@ class TestRoboclawStub(unittest.TestCase):
         self.rbc_ctl = RoboclawControl(self.roboclaw)
 
         # Start moving forward
-        self.rbc_ctl.driveM1M2qpps(1000, 1000, 5)
+        self.rbc_ctl.driveM1M2qpps(1000, 1000, ACCEL, 5)
         self.roboclaw._simulate(sim_secs=0.5)
         self.check_stats(1000, 1000, 500, 500)
 
         # Issue stop command
         self.rbc_ctl.stop()
+        self.roboclaw._simulate()
+        # Stop command was received before simulate() so the loop of simulate should not
+        # add any distance
+        self.check_stats(0, 0, 500, 500)
+
+        # Issue stop command w/ decel
+        self.rbc_ctl.stop(decel=ACCEL)
         self.roboclaw._simulate()
         # Stop command was received before simulate() so the loop of simulate should not
         # add any distance

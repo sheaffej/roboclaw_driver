@@ -101,7 +101,7 @@ class RoboclawControl:
             self.stop()
             self._roboclaw.ResetEncoders(self._address)
 
-    def stop(self):
+    def stop(self, decel=20000):
         """Stop Roboclaw.
 
         Returns: True if the command succeeded, False if failed
@@ -111,13 +111,13 @@ class RoboclawControl:
             # return self.SpeedAccelDistanceM1M2(
             #     accel=0, speed1=0, distance1=0, speed2=0, distance2=0, reset_buffer=1
             # )
-            return self.driveM1M2qpps(0, 0, 0)
+            return self.driveM1M2qpps(0, 0, decel, 0)
 
-    def driveM1M2qpps(self, m1_qpps, m2_qpps, max_secs):
+    def driveM1M2qpps(self, m1_qpps, m2_qpps, accel, max_secs):
         with self._serial_lock:
             return self._roboclaw.SpeedAccelDistanceM1M2(
                 self._address,
-                accel=max(abs(m1_qpps), abs(m2_qpps)) * 2,
+                accel=accel,
                 speed1=m1_qpps, distance1=abs(m1_qpps * max_secs),
                 speed2=m2_qpps, distance2=abs(m2_qpps * max_secs),
                 buffer=1
