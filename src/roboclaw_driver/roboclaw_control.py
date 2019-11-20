@@ -101,7 +101,7 @@ class RoboclawControl:
             self.stop()
             self._roboclaw.ResetEncoders(self._address)
 
-    def stop(self):
+    def stop(self, decel=20000):
         """Stop Roboclaw.
 
         Returns: True if the command succeeded, False if failed
@@ -111,13 +111,13 @@ class RoboclawControl:
             # return self.SpeedAccelDistanceM1M2(
             #     accel=0, speed1=0, distance1=0, speed2=0, distance2=0, reset_buffer=1
             # )
-            return self.driveM1M2qpps(0, 0, 0)
+            return self.driveM1M2qpps(0, 0, decel, 0)
 
-    def driveM1M2qpps(self, m1_qpps, m2_qpps, max_secs):
+    def driveM1M2qpps(self, m1_qpps, m2_qpps, accel, max_secs):
         with self._serial_lock:
             return self._roboclaw.SpeedAccelDistanceM1M2(
                 self._address,
-                accel=max(abs(m1_qpps), abs(m2_qpps)) * 2,
+                accel=accel,
                 speed1=m1_qpps, distance1=abs(m1_qpps * max_secs),
                 speed2=m2_qpps, distance2=abs(m2_qpps * max_secs),
                 buffer=1
@@ -126,52 +126,67 @@ class RoboclawControl:
     def read_stats(self):
         """Read and return the monitorinng values of the Roboclaw
 
-        Returns: RoboclawStats object containing the current values of the stats:
-        :rtype: RoboclawStats
+        Returns: Tuple of (success, RoboclawStats object containing the current values of the stats)
+        :rtype: (boolean, RoboclawStats)
         """
         stats = RoboclawStats()
+        read_error = False
+        retries = 2
 
-        # Read encoder value
         with self._serial_lock:
-            try:
+            # Read encoder value
+            for i in range(0, retries):
                 response = self._roboclaw.ReadEncM1(self._address)
                 if response[0]:
                     stats.m1_enc_val = response[1]
+                    read_error = False
+                    break
                 else:
-                    raise ValueError("Enoder1 read failed CRC or number of retries")
-            except ValueError as e:
-                stats.error_messages.append("Encoder1 value ValueError: {}".format(e.message))
-                raise
+                    stats.error_messages.append("ReadEncM1 CRC failed: {}".format(response[0]))
+                    read_error = True
+                    
+            if read_error:
+                return (False, None)
 
-            try:
+            for i in range(0, retries):
                 response = self._roboclaw.ReadEncM2(self._address)
                 if response[0]:
                     stats.m2_enc_val = response[1]
+                    read_error = False
+                    break
                 else:
-                    raise ValueError("Enoder2 read failed CRC or number of retries")
-            except ValueError:
-                stats.error_messages.append("Encoder2 value ValueError: {}".format(e.message))
+                    stats.error_messages.append("ReadEncM2 CRC failed: {}".format(response[0]))
+                    read_error = True
+            if read_error:
+                return (False, None)
 
             # Read encoder speed
-            try:
+            for i in range(0, retries):
                 response = self._roboclaw.ReadSpeedM1(self._address)
                 if response[0]:
                     stats.m1_enc_qpps = response[1]
+                    read_error = False
+                    break
                 else:
-                    raise ValueError("Enoder1 speed read failed CRC or number of retries")
-            except ValueError as e:
-                stats.error_messages.append("Encoder1 speed ValueError: {}".format(e.message))
+                    stats.error_messages.append("ReadSpeedM1 CRC failed: {}".format(response[0]))
+                    read_error = True
+            if read_error:
+                return (False, None)
 
-            try:
+            for i in range(0, retries):
                 response = self._roboclaw.ReadSpeedM2(self._address)
                 if response[0]:
                     stats.m2_enc_qpps = response[1]
+                    read_error = False
+                    break
                 else:
-                    raise ValueError("Enoder2 read failed CRC or number of retries")
-            except ValueError:
-                stats.error_messages.append("Encoder2 speed ValueError: {}".format(e.message))
+                    stats.error_messages.append("ReadSpeedM2 CRC failed: {}".format(response[0]))
+                    read_error = True
+            if read_error:
+                return (False, None)
 
-        return stats
+        # Return (success, stats)
+        return (True, stats)
 
     def read_diag(self):
         """Read and return the diagnostic values of the Roboclaw

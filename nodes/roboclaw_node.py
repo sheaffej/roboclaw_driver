@@ -94,16 +94,20 @@ class RoboclawNode:
             while not rospy.is_shutdown():
 
                 # Read and publish encoder readings
-                stats = self._rbc_ctl.read_stats()
+                read_success, stats = self._rbc_ctl.read_stats()
                 for error in stats.error_messages:
                     rospy.logwarn(error)
-                self._publish_stats(stats)
+                if read_success:
+                    self._publish_stats(stats)
+                else:
+                    rospy.logwarn("Error reading stats from Roboclaw: {}".format(stats))
 
                 # Stop motors if running and no commands are being received
                 if (stats.m1_enc_qpps != 0 or stats.m2_enc_qpps != 0):
                     if (rospy.get_rostime() - self._last_cmd_time).to_sec() > deadman_secs:
                         rospy.loginfo("Did not receive a command for over 1 sec: Stopping motors")
-                        self._rbc_ctl.stop()
+                        decel = max(abs(stats.m1_enc_qpps), abs(stats.m2_enc_qpps)) * 2
+                        self._rbc_ctl.stop(accel=decel)
 
                 # Publish diagnostics
                 self._diag_updater.update()
@@ -170,14 +174,15 @@ class RoboclawNode:
         Parameters:
             :param SpeedCommand command: The forward/turn command message
         """
-        rospy.logdebug("Received SpeedCommand message")
+        # rospy.logdebug("Received SpeedCommand message")
         rospy.logdebug(
-            "[M1 speed: {}] [M2 speed: {}] [Max Secs: {}]"
-            .format(command.m1_qpps, command.m2_qpps, command.max_secs)
+            "M1 speed: {} | M2 speed: {} | Accel: {} | Max Secs: {}"
+            .format(command.m1_qpps, command.m2_qpps, command.accel, command.max_secs)
         )
         self._last_cmd_time = rospy.get_rostime()
 
-        success = self._rbc_ctl.driveM1M2qpps(command.m1_qpps, command.m2_qpps, command.max_secs)
+        success = self._rbc_ctl.driveM1M2qpps(
+            command.m1_qpps, command.m2_qpps, command.accel, command.max_secs)
         if not success:
             rospy.logerr(
                 "RoboclawControl SpeedAccelDistanceM1M2({}) failed".format(command.forward_pct)
