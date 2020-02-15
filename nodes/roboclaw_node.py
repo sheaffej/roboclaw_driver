@@ -107,7 +107,7 @@ class RoboclawNode:
                     if (rospy.get_rostime() - self._last_cmd_time).to_sec() > deadman_secs:
                         rospy.loginfo("Did not receive a command for over 1 sec: Stopping motors")
                         decel = max(abs(stats.m1_enc_qpps), abs(stats.m2_enc_qpps)) * 2
-                        self._rbc_ctl.stop(accel=decel)
+                        self._rbc_ctl.stop(decel=decel)
 
                 # Publish diagnostics
                 self._diag_updater.update()
