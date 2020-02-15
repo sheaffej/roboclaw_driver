@@ -11,8 +11,8 @@
     <arg name="address"         default="128"/>
     <arg name="loop_hz"         default="4"/>
     <arg name="deadman_secs"    default="3"/>
-    <arg name="speed_cmd_topic" default="~/speed_command"/>
-    <arg name="stats_topic"     default="~/stats"/>
+    <arg name="speed_cmd_topic" default="$(arg name)/speed_command"/>
+    <arg name="stats_topic"     default="$(arg name)/stats"/>
 
     <node name="$(arg name)" pkg="roboclaw_driver" type="roboclaw_node.py">
         <param name="test_mode" type="bool" value="$(arg test_mode)"/>
