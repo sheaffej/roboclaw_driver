@@ -4,15 +4,25 @@
 -->
  <launch>
 
-    <node name="roboclaw" pkg="roboclaw_driver" type="roboclaw_node.py">
-        <param name="test_mode" type="bool" value="false"/>
-        <param name="dev_name" type="str" value="/dev/ttyACM0"/>
-        <param name="baud" type="int" value="115200"/>
-        <param name="address" type="int" value="128"/>
-        <param name="loop_hz" type="int" value="100"/>
-        <param name="deadman_secs" type="int" value="3"/>
-        <param name="speed_cmd_topic" type="str" value="roboclaw/speed_command"/>
-        <param name="stats_topic" type="str" value="roboclaw/stats"/>        
-    </node>
+    <arg name="name"            default="roboclaw"/>
+    <arg name="test_mode"       default="false"/>
+    <arg name="dev_name"        default="/dev/ttyACM0"/>
+    <arg name="baud"            default="115200"/>
+    <arg name="address"         default="128"/>
+    <arg name="loop_hz"         default="4"/>
+    <arg name="deadman_secs"    default="3"/>
+    <arg name="speed_cmd_topic" default="~/speed_command"/>
+    <arg name="stats_topic"     default="~/stats"/>
+
+    <node name="$(arg name)" pkg="roboclaw_driver" type="roboclaw_node.py">
+        <param name="test_mode" type="bool" value="$(arg test_mode)"/>
+        <param name="dev_name" type="str" value="$(arg dev_name)"/>
+        <param name="baud" type="int" value="$(arg baud)"/>
+        <param name="address" type="int" value="$(arg address)"/>
+        <param name="loop_hz" type="int" value="$(arg loop_hz)"/>
+        <param name="deadman_secs" type="int" value="$(arg deadman_secs)"/>
+ 
+        <param name="speed_cmd_topic" type="str" value="$(arg speed_cmd_topic)"/>
+        <param name="stats_topic" type="str" value="$(arg stats_topic)"/>
 
 </launch>

@@ -5,16 +5,9 @@
 -->
 <launch>
  
-    <node name="roboclaw" pkg="roboclaw_driver" type="roboclaw_node.py">
-        <param name="test_mode" type="bool" value="true"/>
-        <param name="dev_name" type="str" value="/dev/ttyACM0"/>
-        <param name="baud" type="int" value="115200"/>
-        <param name="address" type="int" value="128"/>
-        <param name="loop_hz" type="int" value="100"/>
-        <param name="deadman_secs" type="int" value="3"/>
-        <param name="speed_cmd_topic" type="str" value="roboclaw/speed_command"/>
-        <param name="stats_topic" type="str" value="roboclaw/stats"/>
-    </node>
+    <include file="$(find roboclaw_driver)/launch/roboclaw.launch">
+        <arg name="test_mode" value="true"/>
+    </include>
  
     <test test-name="roboclaw_node_nodetest" name="roboclaw_test" pkg="roboclaw_driver" type="test_roboclaw_node.py">
         <param name="stats_topic" type="str" value="roboclaw/stats"/>
