@@ -24,5 +24,6 @@
  
         <param name="speed_cmd_topic" type="str" value="$(arg speed_cmd_topic)"/>
         <param name="stats_topic" type="str" value="$(arg stats_topic)"/>
+    </node>
 
 </launch>
