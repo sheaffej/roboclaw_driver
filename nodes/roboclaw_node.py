@@ -2,6 +2,7 @@
 
 from __future__ import print_function
 import traceback
+import threading
 
 import rospy
 import diagnostic_updater
@@ -32,9 +33,13 @@ class RoboclawNode:
         self._node_name = node_name
         self._rbc_ctl = None  # Set by the connect() method below
 
-        # Records the time of the last velocity command
-        # Initialize this now so we don't have to check for None values later
+        # Records the values of the last speed command
         self._last_cmd_time = rospy.get_rostime()
+        self._last_cmd_m1_qpps = 0
+        self._last_cmd_m2_qpps = 0
+        self._last_cmd_accel = 0
+        self._last_cmd_max_secs = 0
+        self._speed_cmd_lock = threading.RLock()  # To serialize access to cmd variables
 
         # Set up the Publishers
         self._stats_pub = rospy.Publisher(
@@ -174,19 +179,30 @@ class RoboclawNode:
         Parameters:
             :param SpeedCommand command: The forward/turn command message
         """
-        # rospy.logdebug("Received SpeedCommand message")
-        rospy.logdebug(
-            "M1 speed: {} | M2 speed: {} | Accel: {} | Max Secs: {}"
-            .format(command.m1_qpps, command.m2_qpps, command.accel, command.max_secs)
-        )
-        self._last_cmd_time = rospy.get_rostime()
+        with self._speed_cmd_lock:
+            self._last_cmd_time = rospy.get_rostime()
 
-        success = self._rbc_ctl.driveM1M2qpps(
-            command.m1_qpps, command.m2_qpps, command.accel, command.max_secs)
-        if not success:
-            rospy.logerr(
-                "RoboclawControl SpeedAccelDistanceM1M2({}) failed".format(command.forward_pct)
-            )
+            # Skip if the new command is not different than the last command
+            if (command.m1_qpps == self._last_cmd_m1_qpps
+                and command.m2_qpps == self._last_cmd_m2_qpps
+                and command.accel == self._last_cmd_accel
+                and command.max_secs == self._last_cmd_max_secs):
+                rospy.logdebug("Speed Command received, but no change in command values")
+
+            else:
+                rospy.logdebug(
+                    "M1 speed: {} | M2 speed: {} | Accel: {} | Max Secs: {}"
+                    .format(command.m1_qpps, command.m2_qpps, command.accel, command.max_secs)
+                )
+
+                success = self._rbc_ctl.driveM1M2qpps(
+                    command.m1_qpps, command.m2_qpps, command.accel, command.max_secs
+                )
+                
+                if not success:
+                    rospy.logerr("RoboclawControl SpeedAccelDistanceM1M2({}) failed".format(
+                        command.forward_pct)
+                    )
 
     def shutdown_node(self):
         """Performs Node shutdown tasks
