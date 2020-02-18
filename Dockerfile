@@ -3,7 +3,6 @@ FROM ros:melodic-ros-base
 ENV ROS_WS /ros
 ENV PYTEST_ADDOPTS "--color=yes"
 SHELL [ "bash", "-c"]
-WORKDIR /root
 
 # Install pip 
 RUN apt update \
@@ -43,3 +42,5 @@ RUN cd ${ROS_WS} \
 RUN source "/opt/ros/$ROS_DISTRO/setup.bash" && \
 	cd $ROS_WS && catkin_make && \
 	rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+WORKDIR /ros/src/roboclaw_driver
