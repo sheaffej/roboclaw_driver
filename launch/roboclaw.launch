@@ -9,7 +9,7 @@
     <arg name="dev_name"        default="/dev/ttyACM0"              />
     <arg name="baud"            default="115200"                    />
     <arg name="address"         default="128"                       />
-    <arg name="loop_hz"         default="4"                         />
+    <arg name="loop_hz"         default="10"                        />
     <arg name="deadman_secs"    default="3"                         />
     <arg name="speed_cmd_topic" default="$(arg name)/speed_command" />
     <arg name="stats_topic"     default="$(arg name)/stats"         />
