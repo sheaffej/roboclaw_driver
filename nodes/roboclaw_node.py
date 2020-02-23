@@ -12,7 +12,7 @@ from roboclaw_driver.msg import Stats, SpeedCommand
 from roboclaw_driver import RoboclawControl, Roboclaw, RoboclawStub
 
 
-DEFAULT_DEV_NAME = "/dev/ttyACM0"
+DEFAULT_DEV_NAMES = "/dev/ttyACM0"
 DEFAULT_BAUD_RATE = 115200
 DEFAULT_NODE_NAME = "roboclaw"
 DEFAULT_LOOP_HZ = 100
@@ -31,7 +31,7 @@ class RoboclawNode:
             :param int loop_rate: Integer rate in Hz of the main loop
         """
         self._node_name = node_name
-        self._rbc_ctl = None  # Set by the connect() method below
+        self._rbc_ctls = []  # Populated by the connect() method
 
         # Records the values of the last speed command
         self._last_cmd_time = rospy.get_rostime()
@@ -81,7 +81,7 @@ class RoboclawNode:
             roboclaw = Roboclaw(dev_name, baud_rate)
         else:
             roboclaw = RoboclawStub(dev_name, baud_rate)
-        self._rbc_ctl = RoboclawControl(roboclaw, address)
+        self._rbc_ctls.append(RoboclawControl(roboclaw, address))
 
     def run(self, loop_hz=10, deadman_secs=1):
         """Runs the main loop of the node
@@ -99,7 +99,7 @@ class RoboclawNode:
             while not rospy.is_shutdown():
 
                 # Read and publish encoder readings
-                read_success, stats = self._rbc_ctl.read_stats()
+                read_success, stats = self._rbc_ctls[0].read_stats()
                 for error in stats.error_messages:
                     rospy.logwarn(error)
                 if read_success:
@@ -112,7 +112,8 @@ class RoboclawNode:
                     if (rospy.get_rostime() - self._last_cmd_time).to_sec() > deadman_secs:
                         rospy.loginfo("Did not receive a command for over 1 sec: Stopping motors")
                         decel = max(abs(stats.m1_enc_qpps), abs(stats.m2_enc_qpps)) * 2
-                        self._rbc_ctl.stop(decel=decel)
+                        for rbc_ctl in self._rbc_ctls:
+                            rbc_ctl.stop(decel=decel)
 
                 # Publish diagnostics
                 self._diag_updater.update()
@@ -157,20 +158,21 @@ class RoboclawNode:
         Returns: The updated DiagnosticStatusWrapper
         :rtype: diagnostic_updater.DiagnosticStatusWrapper
         """
-        diag = self._rbc_ctl.read_diag()
+        for i, rbc_ctl in enumerate(self._rbc_ctls):
+            diag = rbc_ctl.read_diag()
 
-        stat.add("Temperature 1 (C):", diag.temp1)
-        stat.add("Temperature 2 (C):", diag.temp2)
-        stat.add("Main Battery (V):", diag.main_battery_v)
-        stat.add("Logic Battery (V):", diag.logic_battery_v)
-        stat.add("Motor 1 current (Amps):", diag.m1_current)
-        stat.add("Motor 2 current (Amps):", diag.m2_current)
+            stat.add("[{}] Temperature 1 (C):".format(i), diag.temp1)
+            stat.add("[{}] Temperature 2 (C):".format(i), diag.temp2)
+            stat.add("[{}] Main Battery (V):".format(i), diag.main_battery_v)
+            stat.add("[{}] Logic Battery (V):".format(i), diag.logic_battery_v)
+            stat.add("[{}] Motor 1 current (Amps):".format(i), diag.m1_current)
+            stat.add("[{}] Motor 2 current (Amps):".format(i), diag.m2_current)
 
-        for msg in diag.error_messages:
-            level = diagnostic_msgs.msg.DiagnosticStatus.WARN
-            if "error" in msg:
-                level = diagnostic_msgs.msg.DiagnosticStatus.ERROR
-            stat.summary(level, msg)
+            for msg in diag.error_messages:
+                level = diagnostic_msgs.msg.DiagnosticStatus.WARN
+                if "error" in msg:
+                    level = diagnostic_msgs.msg.DiagnosticStatus.ERROR
+                stat.summary(level, "[{}]: msg".format(i))
 
         return stat
 
@@ -195,14 +197,14 @@ class RoboclawNode:
                     .format(command.m1_qpps, command.m2_qpps, command.accel, command.max_secs)
                 )
 
-                success = self._rbc_ctl.driveM1M2qpps(
-                    command.m1_qpps, command.m2_qpps, command.accel, command.max_secs
-                )
-                
-                if not success:
-                    rospy.logerr("RoboclawControl SpeedAccelDistanceM1M2({}) failed".format(
-                        command.forward_pct)
+                for rbc_ctl in self._rbc_ctls:
+                    success = rbc_ctl.driveM1M2qpps(
+                        command.m1_qpps, command.m2_qpps,
+                        command.accel, command.max_secs
                     )
+
+                    if not success:
+                        rospy.logerr("RoboclawControl SpeedAccelDistanceM1M2 failed")
 
     def shutdown_node(self):
         """Performs Node shutdown tasks
@@ -218,7 +220,7 @@ if __name__ == "__main__":
     print("node_name: {}".format(node_name))
 
     # Read the input parameters
-    dev_name = rospy.get_param("~dev_name", DEFAULT_DEV_NAME)
+    dev_names = rospy.get_param("~dev_names", DEFAULT_DEV_NAMES)
     baud_rate = int(rospy.get_param("~baud", DEFAULT_BAUD_RATE))
     address = int(rospy.get_param("~address", DEFAULT_ADDRESS))
     loop_hz = int(rospy.get_param("~loop_hz", DEFAULT_LOOP_HZ))
@@ -226,7 +228,7 @@ if __name__ == "__main__":
     test_mode = bool(rospy.get_param("~test_mode", False))
 
     rospy.logdebug("node_name: {}".format(node_name))
-    rospy.logdebug("dev_name: {}".format(dev_name))
+    rospy.logdebug("dev_names: {}".format(dev_names))
     rospy.logdebug("baud: {}".format(baud_rate))
     rospy.logdebug("address: {}".format(address))
     rospy.logdebug("loop_hz: {}".format(loop_hz))
@@ -237,8 +239,9 @@ if __name__ == "__main__":
     rospy.on_shutdown(node.shutdown_node)
 
     try:
-        # Initialize the Roboclaw controller
-        node.connect(dev_name, baud_rate, address, test_mode)
+        # Initialize the Roboclaw controllers
+        for dev in dev_names.split(','):
+            node.connect(dev, baud_rate, address, test_mode)
         node.run(loop_hz=loop_hz, deadman_secs=DEFAULT_DEADMAN_SEC)
 
     except Exception as e:

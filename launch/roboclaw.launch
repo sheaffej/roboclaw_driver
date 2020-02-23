@@ -6,7 +6,7 @@
 
     <arg name="name"            default="roboclaw"                  />
     <arg name="test_mode"       default="false"                     />
-    <arg name="dev_name"        default="/dev/ttyACM0"              />
+    <arg name="dev_names"       default="/dev/ttyACM0"              />
     <arg name="baud"            default="115200"                    />
     <arg name="address"         default="128"                       />
     <arg name="loop_hz"         default="10"                        />
@@ -16,7 +16,7 @@
 
     <node name="$(arg name)" pkg="roboclaw_driver" type="roboclaw_node.py">
         <param name="test_mode" type="bool" value="$(arg test_mode)" />
-        <param name="dev_name" type="str" value="$(arg dev_name)" />
+        <param name="dev_names" type="str" value="$(arg dev_names)" />
         <param name="baud" type="int" value="$(arg baud)" />
         <param name="address" type="int" value="$(arg address)" />
         <param name="loop_hz" type="int" value="$(arg loop_hz)" />
