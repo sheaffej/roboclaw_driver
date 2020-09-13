@@ -20,7 +20,17 @@ DEFAULT_ADDRESS = 0x80
 DEFAULT_DEADMAN_SEC = 3
 DEFAULT_STATS_TOPIC = "~stats"
 DEFAULT_SPEED_CMD_TOPIC = "~speed_command"
+DEFAULT_LOG_LEVEL = "info"
 
+def parse_log_level(levelstr):
+    map = {
+        "debug": rospy.DEBUG,
+        "info":  rospy.INFO,
+        "warn":  rospy.WARN,
+        "error": rospy.ERROR,
+        "fatal": rospy.FATAL
+    }
+    return map.get(levelstr.lower())
 
 class RoboclawNode:
     def __init__(self, node_name):
@@ -215,7 +225,8 @@ class RoboclawNode:
 if __name__ == "__main__":
 
     # Setup the ROS node
-    rospy.init_node(DEFAULT_NODE_NAME, log_level=rospy.DEBUG)
+    log_level = parse_log_level(rospy.get_param("~log_level", DEFAULT_LOG_LEVEL))
+    rospy.init_node(DEFAULT_NODE_NAME, log_level=log_level)
     node_name = rospy.get_name()
     print("node_name: {}".format(node_name))
 
